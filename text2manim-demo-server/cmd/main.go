@@ -2,21 +2,22 @@ package main
 
 import (
 	"text2manim-demo-server/internal/api"
+	"text2manim-demo-server/internal/config"
 	"text2manim-demo-server/internal/infrastructure"
 	"text2manim-demo-server/internal/repository"
 	"text2manim-demo-server/internal/usecase"
 	"text2manim-demo-server/pkg/logger"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	log := logger.NewLogger()
+	cfg := config.Load(log)
 
-	db := infrastructure.NewDatabase(log)
+	db := infrastructure.NewDatabase(cfg, log)
 	repo := repository.NewGenerationRepository(db, log)
-	useCase := usecase.NewGenerationUseCase(repo, 100, time.Hour, log)
+	useCase := usecase.NewGenerationUseCase(repo, cfg.RateLimitRequests, cfg.RateLimitInterval, cfg.Text2manimAPIEndpoint, log)
 	handler := api.NewHandler(useCase, log)
 
 	r := gin.Default()
