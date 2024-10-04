@@ -2,5 +2,8 @@
 	<mat-form-field class="prompt-form">
 		<mat-label>Enter Prompt</mat-label>
 		<textarea matInput [(ngModel)]="prompt" name="prompt" required></textarea>
+		<button mat-icon-button matSuffix (click)="onSubmit()" class="round-button">
+			<mat-icon>arrow_forward</mat-icon>
+		</button>
 	</mat-form-field>
 </div>

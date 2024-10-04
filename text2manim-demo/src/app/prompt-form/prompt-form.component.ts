@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-prompt-form',
@@ -9,6 +10,7 @@ import { FormsModule } from '@angular/forms';
   imports: [
     MatFormFieldModule,
     MatInputModule,
+    MatIconModule,
     FormsModule,
   ],
   templateUrl: './prompt-form.component.html',
@@ -16,4 +18,6 @@ import { FormsModule } from '@angular/forms';
 })
 export class PromptFormComponent {
   prompt: string = '';
+
+  onSubmit(): void { };
 }
