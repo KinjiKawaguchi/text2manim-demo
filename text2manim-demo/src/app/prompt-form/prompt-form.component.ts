@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
+import { MailAddrDialogComponent } from '../mail-addr-dialog/mail-addr-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-prompt-form',
@@ -14,11 +16,14 @@ import { CommonModule } from '@angular/common';
     MatInputModule,
     MatIconModule,
     FormsModule,
+    MailAddrDialogComponent,
   ],
   templateUrl: './prompt-form.component.html',
   styleUrl: './prompt-form.component.css'
 })
 export class PromptFormComponent {
+  private dialogService = inject(MatDialog);
+
   prompt: string = '';
 
   charCount: number = 0;
@@ -40,5 +45,15 @@ export class PromptFormComponent {
     if (this.isOverLimit()) {
       return;
     }
+
+    // Open dialog
+    const dialogRef = this.dialogService.open(MailAddrDialogComponent, {
+      width: '60vh'
+    })
+
+    // Handle dialog result
+    dialogRef.afterClosed().subscribe(email => {
+      console.log(`Dialog result: ${email}`);
+    });
   };
 }

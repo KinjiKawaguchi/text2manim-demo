@@ -1,0 +1,12 @@
+<h2 mat-dialog-title>Email</h2>
+<mat-dialog-content class="dialog-contents-container">
+  <p> Enter your email please</p>
+  <mat-form-field>
+    <mat-label>your email</mat-label>
+    <input matInput [(ngModel)]="email" width="80%" />
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button (click)="onClickClose()">Cancel</button>
+  <button mat-button (click)="onSubmitEmail()" cdkFocusInitial [disabled]="!isEmailValid()">Submit</button>
+</mat-dialog-actions>
