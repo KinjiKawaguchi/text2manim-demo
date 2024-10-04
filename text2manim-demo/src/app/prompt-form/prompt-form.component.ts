@@ -32,6 +32,10 @@ export class PromptFormComponent {
     return this.charCount >= this.maxLength;
   }
 
+  isNoInput(): boolean {
+    return this.charCount === 0;
+  }
+
   onSubmit(): void {
     if (this.isOverLimit()) {
       return;
