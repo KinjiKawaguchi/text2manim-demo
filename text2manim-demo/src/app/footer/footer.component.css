@@ -4,6 +4,12 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-top: solid 2px black;
-	margin-top: 10px;
+	border-top: solid 2px gainsboro;
+	/* background-color: #d7e3ff; */
+}
+
+.footer-text {
+	font-size: 20px;
+	color: #666;
+	margin: 0;
 }
