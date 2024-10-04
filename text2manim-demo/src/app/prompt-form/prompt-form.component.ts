@@ -3,11 +3,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-prompt-form',
   standalone: true,
   imports: [
+    CommonModule,
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
@@ -19,5 +21,20 @@ import { MatIconModule } from '@angular/material/icon';
 export class PromptFormComponent {
   prompt: string = '';
 
-  onSubmit(): void { };
+  charCount: number = 0;
+  maxLength: number = 150;
+
+  updateCharCount(): void {
+    this.charCount = this.prompt.length;
+  }
+
+  isOverLimit(): boolean {
+    return this.charCount >= this.maxLength;
+  }
+
+  onSubmit(): void {
+    if (this.isOverLimit()) {
+      return;
+    }
+  };
 }

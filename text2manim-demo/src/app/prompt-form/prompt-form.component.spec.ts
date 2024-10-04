@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { PromptFormComponent } from './prompt-form.component';
 
 describe('PromptFormComponent', () => {
@@ -10,7 +9,7 @@ describe('PromptFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [PromptFormComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(PromptFormComponent);
     component = fixture.componentInstance;
