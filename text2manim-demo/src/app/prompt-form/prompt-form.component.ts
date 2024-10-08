@@ -2,12 +2,12 @@ import { Component, inject } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MailAddrDialogComponent } from '../mail-addr-dialog/mail-addr-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { SubmitButtonComponent } from '../submit-button/submit-button.component';
 
 @Component({
   selector: 'app-prompt-form',
@@ -16,9 +16,9 @@ import { environment } from '../../environments/environment';
     CommonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatIconModule,
     FormsModule,
     MailAddrDialogComponent,
+    SubmitButtonComponent,
   ],
   templateUrl: './prompt-form.component.html',
   styleUrl: './prompt-form.component.css'

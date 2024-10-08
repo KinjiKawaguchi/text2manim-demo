@@ -6,9 +6,6 @@
 		<mat-hint align="start" [ngClass]="{'over-limit': isOverLimit() || isNoInput()}">
 			{{charCount}} / {{maxLength}} characters
 		</mat-hint>
-		<button mat-icon-button matSuffix (click)="onSubmit()" class="round-button"
-			[disabled]="isOverLimit() || isNoInput()">
-			<mat-icon>arrow_forward</mat-icon>
-		</button>
+		<app-submit-button [disabled]="isOverLimit() || isNoInput()" (submit)="onSubmit()" matSuffix></app-submit-button>
 	</mat-form-field>
 </div>
