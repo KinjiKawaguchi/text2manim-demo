@@ -5,11 +5,10 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MailAddrDialogComponent } from '../mail-addr-dialog/mail-addr-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
-import { SubmitButtonComponent } from '../submit-button/submit-button.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CookieService } from 'ngx-cookie-service';  // クッキーサービスのインポート
+import { CookieService } from 'ngx-cookie-service';
+import { GenerationService } from '../services/generation.service';
+import { SubmitButtonComponent } from '../submit-button/submit-button.component';
 
 @Component({
   selector: 'app-prompt-form',
@@ -23,14 +22,14 @@ import { CookieService } from 'ngx-cookie-service';  // クッキーサービス
     SubmitButtonComponent,
   ],
   templateUrl: './prompt-form.component.html',
-  styleUrl: './prompt-form.component.css',
-  providers: [CookieService]
+  styleUrls: ['./prompt-form.component.css'],
+  providers: [CookieService],
 })
 export class PromptFormComponent {
-  private http = inject(HttpClient);
   private dialogService = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private cookieService = inject(CookieService);
+  private generationService = inject(GenerationService);
 
   prompt: string = '';
   email: string = '';
@@ -41,7 +40,6 @@ export class PromptFormComponent {
   maxLength: number = 150;
 
   constructor() {
-    // クッキーから email を取得
     const savedEmail = this.cookieService.get('email');
     if (savedEmail) {
       this.email = savedEmail;
@@ -61,11 +59,9 @@ export class PromptFormComponent {
   }
 
   openSnackBar(msg: string): void {
-    this.snackBar.open(
-      msg,
-      'Close', {
-      horizontalPosition: "end",
-      verticalPosition: "bottom",
+    this.snackBar.open(msg, 'Close', {
+      horizontalPosition: 'end',
+      verticalPosition: 'bottom',
     });
   }
 
@@ -74,20 +70,17 @@ export class PromptFormComponent {
       return;
     }
 
-    // cookieに email が保存されている場合はダイアログを開かず直接リクエストを送信
     if (this.email) {
       this.sendPostRequest(this.email);
     } else {
-      // ダイアログを開く
       const dialogRef = this.dialogService.open(MailAddrDialogComponent, {
-        width: '60vh'
+        width: '60vh',
       });
 
-      // ダイアログが閉じた後にPOSTリクエストを送信
       dialogRef.afterClosed().subscribe({
         next: (email) => {
           if (email) {
-            this.cookieService.set('email', email);  // cookieに email を保存
+            this.cookieService.set('email', email);
             this.email = email;
             this.sendPostRequest(email);
           }
@@ -95,61 +88,50 @@ export class PromptFormComponent {
         error: (err) => {
           console.error('Error while closing dialog:', err);
         },
-        complete: () => {
-          console.log('Dialog closed successfully');
-        }
       });
     }
   }
 
   sendPostRequest(email: string): void {
     this.is_loading = true;
-    const url = environment.apiEndpoint + '/v1/generations';
-    const body = { prompt: this.prompt, email: email };
 
-    this.http.post<{ request_id: string }>(url, body).subscribe({
+    this.generationService.sendGenerationRequest(this.prompt, email).subscribe({
       next: (response) => {
         this.requestId = response.request_id;
         this.is_loading = true;
-        this.prompt = ''; // リクエストが送信されたら prompt をクリア
+        this.prompt = '';
+        this.pollGenerationStatus();
       },
       error: (err) => {
         console.error('Error in POST request:', err);
         this.is_loading = false;
         this.openSnackBar('Error in sending request');
       },
-      complete: () => {
-        console.log('POST request completed');
-        this.is_loading = false;
-      }
     });
   }
 
   pollGenerationStatus(): void {
-    const url = environment.apiEndpoint + `/v1/generations/${this.requestId}`;
-
     const intervalId = setInterval(() => {
       if (!this.is_loading) {
-        clearInterval(intervalId); // is_loading が false ならポーリング停止
+        clearInterval(intervalId);
         return;
       }
 
-      this.http.get<{ status: string }>(url).subscribe({
+      this.generationService.getGenerationStatus(this.requestId).subscribe({
         next: (response) => {
-          console.log('Status response:', response.status);
           if (response.status !== 'pending') {
-            this.is_loading = false; // 処理が完了したらポーリングを停止
+            this.is_loading = false;
             this.openSnackBar('Generation completed successfully!');
-            clearInterval(intervalId); // ポーリング停止
+            clearInterval(intervalId);
           }
         },
         error: (err) => {
           console.error('Error fetching status:', err);
           this.is_loading = false;
           this.openSnackBar('Error fetching generation status');
-          clearInterval(intervalId); // エラー発生時もポーリング停止
-        }
+          clearInterval(intervalId);
+        },
       });
-    }, 3000); // 3秒ごとにリクエストを送信
+    }, 3000);
   }
 }
