@@ -9,3 +9,7 @@
 .round-button:hover {
   background-color: #e0e0e0; 
 }
+
+mat-progress-spinner {
+  margin-right: 10px;
+}

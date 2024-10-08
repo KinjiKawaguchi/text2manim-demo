@@ -1,3 +1,15 @@
-<button mat-icon-button matSuffix (click)="onClick()" class="round-button" [disabled]="disabled">
-  <mat-icon>arrow_forward</mat-icon>
-</button>
+<!-- loading が true なら ProgressSpinner を表示 -->
+<ng-container *ngIf="loading; else showButton">
+  <mat-progress-spinner
+    mode="indeterminate"
+    diameter="24">
+  </mat-progress-spinner>
+</ng-container>
+
+<!-- loading が false の場合にボタンを表示 -->
+<ng-template #showButton>
+  <button mat-icon-button matSuffix (click)="onClick()" class="round-button" [disabled]="disabled">
+    <mat-icon>arrow_forward</mat-icon>
+  </button>
+</ng-template>
+
