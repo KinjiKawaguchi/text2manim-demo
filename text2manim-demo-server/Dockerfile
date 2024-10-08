@@ -18,6 +18,8 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 COPY --from=builder /app/main .
-COPY .env .
+
+# .envファイルが存在する場合はコピー、存在しない場合は空ファイルを作成
+COPY .env* ./.env 2>/dev/null || touch .env
 
 CMD ["./main"]
