@@ -9,7 +9,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { SubmitButtonComponent } from '../submit-button/submit-button.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
+import { CookieService } from 'ngx-cookie-service';  // クッキーサービスのインポート
 
 @Component({
   selector: 'app-prompt-form',
@@ -23,12 +23,14 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     SubmitButtonComponent,
   ],
   templateUrl: './prompt-form.component.html',
-  styleUrl: './prompt-form.component.css'
+  styleUrl: './prompt-form.component.css',
+  providers: [CookieService]
 })
 export class PromptFormComponent {
   private http = inject(HttpClient);
   private dialogService = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private cookieService = inject(CookieService);
 
   prompt: string = '';
   email: string = '';
@@ -37,6 +39,14 @@ export class PromptFormComponent {
 
   charCount: number = 0;
   maxLength: number = 150;
+
+  constructor() {
+    // クッキーから email を取得
+    const savedEmail = this.cookieService.get('email');
+    if (savedEmail) {
+      this.email = savedEmail;
+    }
+  }
 
   updateCharCount(): void {
     this.charCount = this.prompt.length;
@@ -64,25 +74,32 @@ export class PromptFormComponent {
       return;
     }
 
-    // ダイアログを開く
-    const dialogRef = this.dialogService.open(MailAddrDialogComponent, {
-      width: '60vh'
-    });
+    // cookieに email が保存されている場合はダイアログを開かず直接リクエストを送信
+    if (this.email) {
+      this.sendPostRequest(this.email);
+    } else {
+      // ダイアログを開く
+      const dialogRef = this.dialogService.open(MailAddrDialogComponent, {
+        width: '60vh'
+      });
 
-    // ダイアログが閉じた後にPOSTリクエストを送信
-    dialogRef.afterClosed().subscribe({
-      next: (email) => {
-        if (email) {
-          this.sendPostRequest(email);
+      // ダイアログが閉じた後にPOSTリクエストを送信
+      dialogRef.afterClosed().subscribe({
+        next: (email) => {
+          if (email) {
+            this.cookieService.set('email', email);  // cookieに email を保存
+            this.email = email;
+            this.sendPostRequest(email);
+          }
+        },
+        error: (err) => {
+          console.error('Error while closing dialog:', err);
+        },
+        complete: () => {
+          console.log('Dialog closed successfully');
         }
-      },
-      error: (err) => {
-        console.error('Error while closing dialog:', err);
-      },
-      complete: () => {
-        console.log('Dialog closed successfully');
-      }
-    });
+      });
+    }
   }
 
   sendPostRequest(email: string): void {
@@ -94,6 +111,7 @@ export class PromptFormComponent {
       next: (response) => {
         this.requestId = response.request_id;
         this.is_loading = true;
+        this.prompt = ''; // リクエストが送信されたら prompt をクリア
       },
       error: (err) => {
         console.error('Error in POST request:', err);
