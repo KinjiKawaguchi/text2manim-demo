@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { MailAddrDialogComponent } from '../mail-addr-dialog/mail-addr-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-prompt-form',
@@ -71,7 +72,7 @@ export class PromptFormComponent {
   }
 
   sendPostRequest(email: string): void {
-    const url = 'http://localhost:8080/v1/generations';  // 実際のAPIのURLに変更
+    const url = environment.apiEndpoint + '/v1/generations';
     const body = { prompt: this.prompt, email: email };
 
     this.http.post(url, body).subscribe({
