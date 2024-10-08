@@ -8,6 +8,9 @@ import (
 	"text2manim-demo-server/internal/usecase"
 	"text2manim-demo-server/pkg/logger"
 
+	"time"
+
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,6 +24,16 @@ func main() {
 	handler := api.NewHandler(useCase, log)
 
 	r := gin.Default()
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://127.0.0.1:4200", "http://localhost:4200"},
+		AllowMethods:     []string{"POST", "GET"},
+		AllowHeaders:     []string{"Origin", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	r.POST("/v1/generations", handler.CreateGeneration)
 	r.GET("/v1/generations/:request_id", handler.GetGenerationStatus)
 

@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MailAddrDialogComponent } from '../mail-addr-dialog/mail-addr-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-prompt-form',
@@ -22,9 +23,11 @@ import { MatDialog } from '@angular/material/dialog';
   styleUrl: './prompt-form.component.css'
 })
 export class PromptFormComponent {
+  private http = inject(HttpClient);
   private dialogService = inject(MatDialog);
 
   prompt: string = '';
+  email: string = '';
 
   charCount: number = 0;
   maxLength: number = 150;
@@ -46,14 +49,41 @@ export class PromptFormComponent {
       return;
     }
 
-    // Open dialog
+    // ダイアログを開く
     const dialogRef = this.dialogService.open(MailAddrDialogComponent, {
       width: '60vh'
-    })
-
-    // Handle dialog result
-    dialogRef.afterClosed().subscribe(email => {
-      console.log(`Dialog result: ${email}`);
     });
-  };
+
+    // ダイアログが閉じた後にPOSTリクエストを送信
+    dialogRef.afterClosed().subscribe({
+      next: (email) => {
+        if (email) {
+          this.sendPostRequest(email);
+        }
+      },
+      error: (err) => {
+        console.error('Error while closing dialog:', err);
+      },
+      complete: () => {
+        console.log('Dialog closed successfully');
+      }
+    });
+  }
+
+  sendPostRequest(email: string): void {
+    const url = 'http://localhost:8080/v1/generations';  // 実際のAPIのURLに変更
+    const body = { prompt: this.prompt, email: email };
+
+    this.http.post(url, body).subscribe({
+      next: (response) => {
+        console.log('POST request successful:', response);
+      },
+      error: (err) => {
+        console.error('Error in POST request:', err);
+      },
+      complete: () => {
+        console.log('POST request completed');
+      }
+    });
+  }
 }
