@@ -2,6 +2,24 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+interface GenerationData {
+	ID: number;
+	RequestID: string;
+	Email: string;
+	Prompt: string;
+	Status: string;
+	VideoURL: string;
+	ScriptURL: string;
+	ErrorMessage: string;
+	CreatedAt: string;
+	UpdatedAt: string;
+}
+
+interface GenerationResponse {
+	generation_status: GenerationData;
+}
 
 @Injectable({
 	providedIn: 'root',
@@ -16,7 +34,10 @@ export class GenerationService {
 		return this.http.post<{ request_id: string }>(this.apiUrl, body);
 	}
 
-	getGenerationStatus(requestId: string): Observable<{ status: string }> {
-		return this.http.get<{ status: string }>(`${this.apiUrl}/${requestId}`);
+
+	getGenerationStatus(requestId: string): Observable<GenerationData> {
+		return this.http.get<GenerationResponse>(`${this.apiUrl}/${requestId}`).pipe(
+			map(response => response.generation_status)
+		);
 	}
 }

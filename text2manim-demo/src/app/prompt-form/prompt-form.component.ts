@@ -9,6 +9,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CookieService } from 'ngx-cookie-service';
 import { GenerationService } from '../services/generation.service';
 import { SubmitButtonComponent } from '../submit-button/submit-button.component';
+import { O } from '@angular/cdk/keycodes';
+
+
+export const MAX_LENGTH: number = 150;
 
 @Component({
   selector: 'app-prompt-form',
@@ -36,8 +40,8 @@ export class PromptFormComponent {
   is_loading: boolean = false;
   requestId: string = '';
 
+  readonly maxLength: number = MAX_LENGTH;
   charCount: number = 0;
-  maxLength: number = 150;
 
   constructor() {
     const savedEmail = this.cookieService.get('email');
@@ -93,6 +97,7 @@ export class PromptFormComponent {
   }
 
   sendPostRequest(email: string): void {
+
     this.is_loading = true;
 
     this.generationService.sendGenerationRequest(this.prompt, email).subscribe({
@@ -111,6 +116,12 @@ export class PromptFormComponent {
   }
 
   pollGenerationStatus(): void {
+    // Mock request id
+    // this.is_loading = true;
+    // this.requestId = `test`;
+    // this.prompt = 'Test prompt';
+    // this.email = 'test@example.com';
+
     const intervalId = setInterval(() => {
       if (!this.is_loading) {
         clearInterval(intervalId);
@@ -119,9 +130,13 @@ export class PromptFormComponent {
 
       this.generationService.getGenerationStatus(this.requestId).subscribe({
         next: (response) => {
-          if (response.status !== 'pending') {
+          if (response.Status == 'COMPLETED') {
             this.is_loading = false;
             this.openSnackBar('Generation completed successfully!');
+            clearInterval(intervalId);
+          } else if (response.Status == 'FAILED') {
+            this.is_loading = false;
+            this.openSnackBar('Generation failed');
             clearInterval(intervalId);
           }
         },
