@@ -17,7 +17,7 @@ func main() {
 
 	db := infrastructure.NewDatabase(cfg, log)
 	repo := repository.NewGenerationRepository(db, log)
-	useCase := usecase.NewGenerationUseCase(repo, cfg.RateLimitRequests, cfg.RateLimitInterval, cfg.Text2manimAPIEndpoint, log)
+	useCase := usecase.NewGenerationUseCase(repo, cfg.RateLimitRequests, cfg.RateLimitInterval, cfg.Text2manimApiEndpoint, cfg.Text2manimApiKey, log)
 	handler := api.NewHandler(useCase, log)
 
 	r := gin.Default()
