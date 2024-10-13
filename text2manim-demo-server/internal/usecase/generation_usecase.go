@@ -20,22 +20,24 @@ type GenerationUseCase interface {
 	CreateGeneration(email, prompt string) (string, error)
 	GetGeneration(requestID string) (domain.Generation, error)
 	CheckDatabaseConnection() error
-	CheckText2ManimAPIConnection() error
+	CheckText2ManimApiConnection() error
 }
 
 type generationUseCase struct {
-	repo             repository.GenerationRepository
-	rateLimiter      *ratelimiter.RateLimiter
-	videoAPIEndpoint string
-	log              *slog.Logger
+	repo                  repository.GenerationRepository
+	rateLimiter           *ratelimiter.RateLimiter
+	text2ManimApiEndpoint string
+	text2ManimApiKey      string
+	log                   *slog.Logger
 }
 
-func NewGenerationUseCase(repo repository.GenerationRepository, limit int, interval time.Duration, videoAPIEndpoint string, log *slog.Logger) GenerationUseCase {
+func NewGenerationUseCase(repo repository.GenerationRepository, limit int, interval time.Duration, text2ManimApiEndpoint string, text2ManimApiKey string, log *slog.Logger) GenerationUseCase {
 	return &generationUseCase{
-		repo:             repo,
-		rateLimiter:      ratelimiter.NewRateLimiter(limit, interval),
-		videoAPIEndpoint: videoAPIEndpoint,
-		log:              log,
+		repo:                  repo,
+		rateLimiter:           ratelimiter.NewRateLimiter(limit, interval),
+		text2ManimApiEndpoint: text2ManimApiEndpoint,
+		text2ManimApiKey:      text2ManimApiKey, // APIキーを設定
+		log:                   log,
 	}
 }
 
@@ -62,7 +64,7 @@ func (uc *generationUseCase) CreateGeneration(email, prompt string) (string, err
 	}
 
 	// APIを呼び出し
-	err = uc.callVideoGenerationAPI(requestID, prompt)
+	err = uc.callVideoGenerationApi(requestID, prompt)
 	if err != nil {
 		uc.log.Error("Failed to call video generation API", "error", err, "requestID", requestID)
 		// APIの呼び出しに失敗した場合、ステータスを更新
@@ -76,7 +78,7 @@ func (uc *generationUseCase) CreateGeneration(email, prompt string) (string, err
 	return requestID, nil
 }
 
-func (uc *generationUseCase) callVideoGenerationAPI(requestID, prompt string) error {
+func (uc *generationUseCase) callVideoGenerationApi(requestID, prompt string) error {
 	payload := map[string]string{
 		"request_id": requestID,
 		"prompt":     prompt,
@@ -86,8 +88,17 @@ func (uc *generationUseCase) callVideoGenerationAPI(requestID, prompt string) er
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	url := fmt.Sprintf("%s/v1/generations", uc.videoAPIEndpoint)
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonPayload))
+	url := fmt.Sprintf("%s/v1/generations", uc.text2ManimApiEndpoint)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Api-Key", uc.text2ManimApiKey) // APIキーをヘッダーに追加
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send request to video generation API: %w", err)
 	}
@@ -131,11 +142,16 @@ func (uc *generationUseCase) GetGeneration(requestID string) (domain.Generation,
 }
 
 func (uc *generationUseCase) checkVideoGenerationStatus(requestID string) (domain.GenerationStatus, error) {
-	// 動画生成APIのエンドポイントを構築
-	url := fmt.Sprintf("%s/v1/generations/%s", uc.videoAPIEndpoint, requestID)
+	url := fmt.Sprintf("%s/v1/generations/%s", uc.text2ManimApiEndpoint, requestID)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
 
-	// GETリクエストを送信
-	resp, err := http.Get(url)
+	req.Header.Set("X-Api-Key", uc.text2ManimApiKey) // APIキーをヘッダーに追加
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to send request to video generation API: %w", err)
 	}
@@ -145,7 +161,6 @@ func (uc *generationUseCase) checkVideoGenerationStatus(requestID string) (domai
 		return "", fmt.Errorf("video generation API returned non-OK status: %d", resp.StatusCode)
 	}
 
-	// レスポンスのJSONをパース
 	var result struct {
 		Status string `json:"status"`
 	}
@@ -153,7 +168,6 @@ func (uc *generationUseCase) checkVideoGenerationStatus(requestID string) (domai
 		return "", fmt.Errorf("failed to decode API response: %w", err)
 	}
 
-	// 状態を適切なdomain.GenerationStatusに変換
 	switch result.Status {
 	case "completed":
 		return domain.StatusCompleted, nil
@@ -168,9 +182,17 @@ func (uc *generationUseCase) CheckDatabaseConnection() error {
 	return uc.repo.Ping()
 }
 
-func (uc *generationUseCase) CheckText2ManimAPIConnection() error {
-	url := fmt.Sprintf("%s/v1/health", uc.videoAPIEndpoint)
-	resp, err := http.Get(url)
+func (uc *generationUseCase) CheckText2ManimApiConnection() error {
+	url := fmt.Sprintf("%s/v1/health", uc.text2ManimApiEndpoint)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("X-Api-Key", uc.text2ManimApiKey) // APIキーをヘッダーに追加
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to connect to video API: %w", err)
 	}

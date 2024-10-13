@@ -63,7 +63,7 @@ func (h *Handler) HealthCheck(c *gin.Context) {
 	}
 
 	// 動画生成APIの状態を確認
-	if err := h.useCase.CheckText2ManimAPIConnection(); err != nil {
+	if err := h.useCase.CheckText2ManimApiConnection(); err != nil {
 		h.log.Error("Video API health check failed", "error", err)
 		c.JSON(http.StatusServiceUnavailable, gin.H{"status": "unhealthy", "message": "Video API connection failed"})
 		return
