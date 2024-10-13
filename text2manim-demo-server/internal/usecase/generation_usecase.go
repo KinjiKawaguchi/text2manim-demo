@@ -16,30 +16,34 @@ import (
 	"gorm.io/gorm"
 )
 
-type GenerationUseCase interface {
-	CreateGeneration(email, prompt string) (string, error)
-	GetGenerationStatus(requestID string) (domain.GenerationStatus, error)
+type VideoGenerationUseCase interface {
+	RequestVideoGeneration(email, prompt string) (string, error)
+	GetVideoGenerationStatus(requestID string) (domain.Generation, error)
+	CheckDatabaseConnection() error
+	CheckText2ManimAPIConnection() error
 }
 
-type generationUseCase struct {
+type videoGenerationUseCase struct {
 	repo             repository.GenerationRepository
 	rateLimiter      *ratelimiter.RateLimiter
-	videoAPIEndpoint string
-	log              *slog.Logger
+	text2ManimAPIURL string
+	text2ManimAPIKey string
+	logger           *slog.Logger
 }
 
-func NewGenerationUseCase(repo repository.GenerationRepository, limit int, interval time.Duration, videoAPIEndpoint string, log *slog.Logger) GenerationUseCase {
-	return &generationUseCase{
+func NewVideoGenerationUseCase(repo repository.GenerationRepository, limit int, interval time.Duration, text2ManimAPIURL string, text2ManimAPIKey string, logger *slog.Logger) VideoGenerationUseCase {
+	return &videoGenerationUseCase{
 		repo:             repo,
 		rateLimiter:      ratelimiter.NewRateLimiter(limit, interval),
-		videoAPIEndpoint: videoAPIEndpoint,
-		log:              log,
+		text2ManimAPIURL: text2ManimAPIURL,
+		text2ManimAPIKey: text2ManimAPIKey,
+		logger:           logger,
 	}
 }
 
-func (uc *generationUseCase) CreateGeneration(email, prompt string) (string, error) {
+func (uc *videoGenerationUseCase) RequestVideoGeneration(email, prompt string) (string, error) {
 	if !uc.rateLimiter.Allow() {
-		uc.log.Warn("Rate limit exceeded", "email", email)
+		uc.logger.Warn("Rate limit exceeded", "email", email)
 		return "", errors.New("rate limit exceeded")
 	}
 
@@ -52,29 +56,24 @@ func (uc *generationUseCase) CreateGeneration(email, prompt string) (string, err
 		CreatedAt: time.Now(),
 	}
 
-	// データベースに保存
-	err := uc.repo.Create(generation)
-	if err != nil {
-		uc.log.Error("Failed to create generation in database", "error", err, "requestID", requestID)
-		return "", fmt.Errorf("failed to create generation: %w", err)
+	if err := uc.repo.Create(generation); err != nil {
+		uc.logger.Error("Failed to create generation record", "error", err, "requestID", requestID)
+		return "", fmt.Errorf("failed to create generation record: %w", err)
 	}
 
-	// APIを呼び出し
-	err = uc.callVideoGenerationAPI(requestID, prompt)
-	if err != nil {
-		uc.log.Error("Failed to call video generation API", "error", err, "requestID", requestID)
-		// APIの呼び出しに失敗した場合、ステータスを更新
-		updateErr := uc.repo.UpdateStatus(requestID, domain.StatusFailed)
-		if updateErr != nil {
-			uc.log.Error("Failed to update generation status", "error", updateErr, "requestID", requestID)
+	if err := uc.initiateVideoGeneration(requestID, prompt); err != nil {
+		uc.logger.Error("Failed to initiate video generation", "error", err, "requestID", requestID)
+		generation.Status = string(domain.StatusFailed)
+		if updateErr := uc.repo.Update(requestID, generation); updateErr != nil {
+			uc.logger.Error("Failed to update generation status", "error", updateErr, "requestID", requestID)
 		}
-		return requestID, fmt.Errorf("failed to start video generation: %w", err)
+		return requestID, fmt.Errorf("failed to initiate video generation: %w", err)
 	}
 
 	return requestID, nil
 }
 
-func (uc *generationUseCase) callVideoGenerationAPI(requestID, prompt string) error {
+func (uc *videoGenerationUseCase) initiateVideoGeneration(requestID, prompt string) error {
 	payload := map[string]string{
 		"request_id": requestID,
 		"prompt":     prompt,
@@ -84,7 +83,17 @@ func (uc *generationUseCase) callVideoGenerationAPI(requestID, prompt string) er
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	resp, err := http.Post(uc.videoAPIEndpoint, "application/json", bytes.NewBuffer(jsonPayload))
+	url := fmt.Sprintf("%s/v1/generations", uc.text2ManimAPIURL)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Api-Key", uc.text2ManimAPIKey)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send request to video generation API: %w", err)
 	}
@@ -97,16 +106,90 @@ func (uc *generationUseCase) callVideoGenerationAPI(requestID, prompt string) er
 	return nil
 }
 
-func (uc *generationUseCase) GetGenerationStatus(requestID string) (domain.GenerationStatus, error) {
+func (uc *videoGenerationUseCase) GetVideoGenerationStatus(requestID string) (domain.Generation, error) {
 	generation, err := uc.repo.FindByRequestID(requestID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			uc.log.Info("Generation not found", "requestID", requestID)
-			return "", fmt.Errorf("generation not found")
+			uc.logger.Info("Generation not found", "requestID", requestID)
+			return domain.Generation{}, fmt.Errorf("generation not found")
 		}
-		uc.log.Error("Failed to get generation status", "error", err, "requestID", requestID)
-		return "", fmt.Errorf("failed to get generation status: %w", err)
+		uc.logger.Error("Failed to get generation status", "error", err, "requestID", requestID)
+		return domain.Generation{}, fmt.Errorf("failed to get generation status: %w", err)
 	}
-	uc.log.Info("Generation status retrieved", "requestID", requestID, "status", generation.Status)
-	return domain.GenerationStatus(generation.Status), nil
+
+	apiStatus, err := uc.fetchVideoGenerationStatus(requestID)
+	if err != nil {
+		uc.logger.Error("Failed to fetch video generation status", "error", err, "requestID", requestID)
+		return *generation, nil
+	}
+
+	generation.Status = string(apiStatus.Status)
+	generation.VideoURL = apiStatus.VideoURL
+	generation.ScriptURL = apiStatus.ScriptURL
+	generation.ErrorMessage = apiStatus.ErrorMessage
+	generation.UpdatedAt = time.Unix(apiStatus.UpdatedAt, 0)
+
+	if err := uc.repo.Update(requestID, generation); err != nil {
+		uc.logger.Error("Failed to update generation record", "error", err, "requestID", requestID)
+	}
+
+	uc.logger.Info("Generation status updated", "requestID", requestID, "generation", generation)
+	return *generation, nil
+}
+
+func (uc *videoGenerationUseCase) fetchVideoGenerationStatus(requestID string) (*domain.GenerationResponse, error) {
+	url := fmt.Sprintf("%s/v1/generations/%s", uc.text2ManimAPIURL, requestID)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("X-Api-Key", uc.text2ManimAPIKey)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request to video generation API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("video generation API returned non-OK status: %d", resp.StatusCode)
+	}
+
+	var result struct {
+		GenerationStatus domain.GenerationResponse `json:"generation_status"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode API response: %w", err)
+	}
+
+	return &result.GenerationStatus, nil
+}
+
+func (uc *videoGenerationUseCase) CheckDatabaseConnection() error {
+	return uc.repo.Ping()
+}
+
+func (uc *videoGenerationUseCase) CheckText2ManimAPIConnection() error {
+	url := fmt.Sprintf("%s/v1/health", uc.text2ManimAPIURL)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("X-Api-Key", uc.text2ManimAPIKey)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to connect to video API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("video API returned non-OK status: %d", resp.StatusCode)
+	}
+
+	return nil
 }

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"log/slog"
 	"text2manim-demo-server/internal/domain"
 	"time"
@@ -11,7 +12,8 @@ import (
 type GenerationRepository interface {
 	Create(generation *domain.Generation) error
 	FindByRequestID(requestID string) (*domain.Generation, error)
-	UpdateStatus(requestID string, status domain.GenerationStatus) error
+	Update(requestID string, generation *domain.Generation) error
+	Ping() error
 }
 
 type generationRepository struct {
@@ -71,23 +73,31 @@ func (r *generationRepository) FindByRequestID(requestID string) (*domain.Genera
 	return &generation, nil
 }
 
-func (r *generationRepository) UpdateStatus(requestID string, status domain.GenerationStatus) error {
+func (r *generationRepository) Update(requestID string, generation *domain.Generation) error {
 	start := time.Now()
-	err := r.db.Model(&domain.Generation{}).Where("request_id = ?", requestID).Update("status", status).Error
+	err := r.db.Model(&domain.Generation{}).Where("request_id = ?", requestID).Updates(generation).Error
 	duration := time.Since(start)
 
 	if err != nil {
 		r.log.Error("Failed to update generation status",
 			"error", err,
 			"requestID", requestID,
-			"newStatus", status,
+			"status", generation.Status,
 			"duration", duration)
 		return err
 	}
 
 	r.log.Info("Generation status updated",
 		"requestID", requestID,
-		"newStatus", status,
+		"status", generation.Status,
 		"duration", duration)
 	return nil
+}
+
+func (r *generationRepository) Ping() error {
+	db, err := r.db.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get database instance: %w", err)
+	}
+	return db.Ping()
 }
