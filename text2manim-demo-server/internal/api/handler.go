@@ -53,3 +53,21 @@ func (h *Handler) GetGeneration(c *gin.Context) {
 	h.log.Info("Generation retrieved", "requestID", requestID, "generation", generation)
 	c.JSON(http.StatusOK, gin.H{"generation_status": generation})
 }
+
+func (h *Handler) HealthCheck(c *gin.Context) {
+	// データベース接続を確認
+	if err := h.useCase.CheckDatabaseConnection(); err != nil {
+		h.log.Error("Database health check failed", "error", err)
+		c.JSON(http.StatusServiceUnavailable, gin.H{"status": "unhealthy", "message": "Database connection failed"})
+		return
+	}
+
+	// 動画生成APIの状態を確認
+	if err := h.useCase.CheckText2ManimAPIConnection(); err != nil {
+		h.log.Error("Video API health check failed", "error", err)
+		c.JSON(http.StatusServiceUnavailable, gin.H{"status": "unhealthy", "message": "Video API connection failed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "healthy"})
+}

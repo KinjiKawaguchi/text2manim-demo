@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"log/slog"
 	"text2manim-demo-server/internal/domain"
 	"time"
@@ -12,6 +13,7 @@ type GenerationRepository interface {
 	Create(generation *domain.Generation) error
 	FindByRequestID(requestID string) (*domain.Generation, error)
 	UpdateStatus(requestID string, status domain.GenerationStatus) error
+	Ping() error
 }
 
 type generationRepository struct {
@@ -90,4 +92,12 @@ func (r *generationRepository) UpdateStatus(requestID string, status domain.Gene
 		"newStatus", status,
 		"duration", duration)
 	return nil
+}
+
+func (r *generationRepository) Ping() error {
+	db, err := r.db.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get database instance: %w", err)
+	}
+	return db.Ping()
 }

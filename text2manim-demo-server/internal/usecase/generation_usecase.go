@@ -19,6 +19,8 @@ import (
 type GenerationUseCase interface {
 	CreateGeneration(email, prompt string) (string, error)
 	GetGeneration(requestID string) (domain.Generation, error)
+	CheckDatabaseConnection() error
+	CheckText2ManimAPIConnection() error
 }
 
 type generationUseCase struct {
@@ -159,4 +161,22 @@ func (uc *generationUseCase) checkVideoGenerationStatus(requestID string) (domai
 	default:
 		return domain.StatusPending, nil
 	}
+}
+
+func (uc *generationUseCase) CheckDatabaseConnection() error {
+	return uc.repo.Ping()
+}
+
+func (uc *generationUseCase) CheckText2ManimAPIConnection() error {
+	resp, err := http.Get(uc.videoAPIEndpoint + "/health")
+	if err != nil {
+		return fmt.Errorf("failed to connect to video API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("video API returned non-OK status: %d", resp.StatusCode)
+	}
+
+	return nil
 }
