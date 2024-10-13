@@ -86,7 +86,8 @@ func (uc *generationUseCase) callVideoGenerationAPI(requestID, prompt string) er
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	resp, err := http.Post(uc.videoAPIEndpoint, "application/json", bytes.NewBuffer(jsonPayload))
+	url := fmt.Sprintf("%s/v1/generations", uc.videoAPIEndpoint)
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return fmt.Errorf("failed to send request to video generation API: %w", err)
 	}
@@ -131,10 +132,10 @@ func (uc *generationUseCase) GetGeneration(requestID string) (domain.Generation,
 
 func (uc *generationUseCase) checkVideoGenerationStatus(requestID string) (domain.GenerationStatus, error) {
 	// 動画生成APIのエンドポイントを構築
-	statusURL := fmt.Sprintf("%s/status/%s", uc.videoAPIEndpoint, requestID)
+	url := fmt.Sprintf("%s/v1/generations/%s", uc.videoAPIEndpoint, requestID)
 
 	// GETリクエストを送信
-	resp, err := http.Get(statusURL)
+	resp, err := http.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("failed to send request to video generation API: %w", err)
 	}
@@ -168,7 +169,8 @@ func (uc *generationUseCase) CheckDatabaseConnection() error {
 }
 
 func (uc *generationUseCase) CheckText2ManimAPIConnection() error {
-	resp, err := http.Get(uc.videoAPIEndpoint + "/health")
+	url := fmt.Sprintf("%s/v1/health", uc.videoAPIEndpoint)
+	resp, err := http.Get(url)
 	if err != nil {
 		return fmt.Errorf("failed to connect to video API: %w", err)
 	}
