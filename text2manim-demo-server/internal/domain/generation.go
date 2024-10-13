@@ -8,6 +8,8 @@ type Generation struct {
 	Email     string    `gorm:"not null"`
 	Prompt    string    `gorm:"not null"`
 	Status    string    `gorm:"not null"`
+	VideoURL  string    `gorm:"default:null"`
+	ScriptURL string    `gorm:"default:null"`
 	CreatedAt time.Time `gorm:"not null"`
 }
 

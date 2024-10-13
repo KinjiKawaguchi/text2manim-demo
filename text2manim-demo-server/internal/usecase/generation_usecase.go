@@ -18,7 +18,7 @@ import (
 
 type GenerationUseCase interface {
 	CreateGeneration(email, prompt string) (string, error)
-	GetGenerationStatus(requestID string) (domain.GenerationStatus, error)
+	GetGeneration(requestID string) (domain.Generation, error)
 }
 
 type generationUseCase struct {
@@ -97,16 +97,66 @@ func (uc *generationUseCase) callVideoGenerationAPI(requestID, prompt string) er
 	return nil
 }
 
-func (uc *generationUseCase) GetGenerationStatus(requestID string) (domain.GenerationStatus, error) {
+func (uc *generationUseCase) GetGeneration(requestID string) (domain.Generation, error) {
 	generation, err := uc.repo.FindByRequestID(requestID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			uc.log.Info("Generation not found", "requestID", requestID)
-			return "", fmt.Errorf("generation not found")
+			return domain.Generation{}, fmt.Errorf("generation not found")
 		}
 		uc.log.Error("Failed to get generation status", "error", err, "requestID", requestID)
-		return "", fmt.Errorf("failed to get generation status: %w", err)
+		return domain.Generation{}, fmt.Errorf("failed to get generation status: %w", err)
 	}
-	uc.log.Info("Generation status retrieved", "requestID", requestID, "status", generation.Status)
-	return domain.GenerationStatus(generation.Status), nil
+
+	// 動画生成APIの状態を確認
+	if generation.Status == string(domain.StatusPending) {
+		updatedStatus, err := uc.checkVideoGenerationStatus(requestID)
+		if err != nil {
+			uc.log.Error("Failed to check video generation status", "error", err, "requestID", requestID)
+			return *generation, nil // エラーが発生しても現在の状態を返す
+		}
+		generation.Status = string(updatedStatus)
+		// データベースの状態を更新
+		err = uc.repo.UpdateStatus(requestID, updatedStatus)
+		if err != nil {
+			uc.log.Error("Failed to update generation status in database", "error", err, "requestID", requestID)
+		}
+	}
+
+	uc.log.Info("Generation status retrieved", "requestID", requestID, "generation", generation)
+	return *generation, nil
+}
+
+func (uc *generationUseCase) checkVideoGenerationStatus(requestID string) (domain.GenerationStatus, error) {
+	// 動画生成APIのエンドポイントを構築
+	statusURL := fmt.Sprintf("%s/status/%s", uc.videoAPIEndpoint, requestID)
+
+	// GETリクエストを送信
+	resp, err := http.Get(statusURL)
+	if err != nil {
+		return "", fmt.Errorf("failed to send request to video generation API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("video generation API returned non-OK status: %d", resp.StatusCode)
+	}
+
+	// レスポンスのJSONをパース
+	var result struct {
+		Status string `json:"status"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", fmt.Errorf("failed to decode API response: %w", err)
+	}
+
+	// 状態を適切なdomain.GenerationStatusに変換
+	switch result.Status {
+	case "completed":
+		return domain.StatusCompleted, nil
+	case "failed":
+		return domain.StatusFailed, nil
+	default:
+		return domain.StatusPending, nil
+	}
 }

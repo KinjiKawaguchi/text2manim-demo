@@ -40,16 +40,16 @@ func (h *Handler) CreateGeneration(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"request_id": requestID})
 }
 
-func (h *Handler) GetGenerationStatus(c *gin.Context) {
+func (h *Handler) GetGeneration(c *gin.Context) {
 	requestID := c.Param("request_id")
 
-	status, err := h.useCase.GetGenerationStatus(requestID)
+	generation, err := h.useCase.GetGeneration(requestID)
 	if err != nil {
-		h.log.Error("Failed to get generation status", "error", err, "requestID", requestID)
+		h.log.Error("Failed to get generation", "error", err, "requestID", requestID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	h.log.Info("Generation status retrieved", "requestID", requestID, "status", status)
-	c.JSON(http.StatusOK, gin.H{"generation_status": status})
+	h.log.Info("Generation retrieved", "requestID", requestID, "generation", generation)
+	c.JSON(http.StatusOK, gin.H{"generation_status": generation})
 }

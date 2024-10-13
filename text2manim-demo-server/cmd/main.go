@@ -22,7 +22,7 @@ func main() {
 
 	r := gin.Default()
 	r.POST("/v1/generations", handler.CreateGeneration)
-	r.GET("/v1/generations/:request_id", handler.GetGenerationStatus)
+	r.GET("/v1/generations/:request_id", handler.GetGeneration)
 
 	log.Info("Starting server on :8080")
 	if err := r.Run(":8080"); err != nil {
