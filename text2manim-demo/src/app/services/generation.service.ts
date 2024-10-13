@@ -4,6 +4,8 @@ import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+const apiEndpoint = 'api.text2manim-demo.kawakin.tech:8080';
+
 interface GenerationData {
 	ID: number;
 	RequestID: string;
@@ -25,7 +27,7 @@ interface GenerationResponse {
 	providedIn: 'root',
 })
 export class GenerationService {
-	private apiUrl = environment.apiEndpoint + '/v1/generations';
+	private apiUrl = apiEndpoint + '/v1/generations';
 
 	constructor(private http: HttpClient) { }
 
@@ -33,7 +35,6 @@ export class GenerationService {
 		const body = { prompt, email };
 		return this.http.post<{ request_id: string }>(this.apiUrl, body);
 	}
-
 
 	getGenerationStatus(requestId: string): Observable<GenerationData> {
 		return this.http.get<GenerationResponse>(`${this.apiUrl}/${requestId}`).pipe(
