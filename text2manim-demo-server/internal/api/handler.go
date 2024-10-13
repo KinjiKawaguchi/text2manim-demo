@@ -9,11 +9,11 @@ import (
 )
 
 type Handler struct {
-	useCase usecase.GenerationUseCase
+	useCase usecase.VideoGenerationUseCase
 	log     *slog.Logger
 }
 
-func NewHandler(useCase usecase.GenerationUseCase, log *slog.Logger) *Handler {
+func NewHandler(useCase usecase.VideoGenerationUseCase, log *slog.Logger) *Handler {
 	return &Handler{useCase: useCase, log: log}
 }
 
@@ -29,7 +29,7 @@ func (h *Handler) CreateGeneration(c *gin.Context) {
 		return
 	}
 
-	requestID, err := h.useCase.CreateGeneration(request.Email, request.Prompt)
+	requestID, err := h.useCase.RequestVideoGeneration(request.Email, request.Prompt)
 	if err != nil {
 		h.log.Error("Failed to create generation", "error", err, "email", request.Email)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -43,7 +43,7 @@ func (h *Handler) CreateGeneration(c *gin.Context) {
 func (h *Handler) GetGeneration(c *gin.Context) {
 	requestID := c.Param("request_id")
 
-	generation, err := h.useCase.GetGeneration(requestID)
+	generation, err := h.useCase.GetVideoGenerationStatus(requestID)
 	if err != nil {
 		h.log.Error("Failed to get generation", "error", err, "requestID", requestID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -63,7 +63,7 @@ func (h *Handler) HealthCheck(c *gin.Context) {
 	}
 
 	// 動画生成APIの状態を確認
-	if err := h.useCase.CheckText2ManimApiConnection(); err != nil {
+	if err := h.useCase.CheckText2ManimAPIConnection(); err != nil {
 		h.log.Error("Video API health check failed", "error", err)
 		c.JSON(http.StatusServiceUnavailable, gin.H{"status": "unhealthy", "message": "Video API connection failed"})
 		return
