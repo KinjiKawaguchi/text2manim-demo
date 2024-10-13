@@ -14,6 +14,7 @@ type Config struct {
 	SupabaseUser     string
 	SupabasePassword string
 	SupabaseDBName   string
+	SupabasePort     string
 
 	Text2manimAPIEndpoint string
 
@@ -44,6 +45,7 @@ func Load(logger *slog.Logger) *Config {
 		SupabaseUser:     getEnv("SUPABASE_USER", ""),
 		SupabasePassword: getEnv("SUPABASE_PASSWORD", ""),
 		SupabaseDBName:   getEnv("SUPABASE_DBNAME", ""),
+		SupabasePort:     getEnv("SUPABASE_PORT", ""),
 
 		Text2manimAPIEndpoint: getEnv("TEXT2MANIM_API_ENDPOINT", ""),
 

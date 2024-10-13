@@ -11,11 +11,12 @@ import (
 )
 
 func NewDatabase(cfg *config.Config, log *slog.Logger) *gorm.DB {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=require",
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require",
 		cfg.SupabaseHost,
 		cfg.SupabaseUser,
 		cfg.SupabasePassword,
 		cfg.SupabaseDBName,
+		cfg.SupabasePort,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
