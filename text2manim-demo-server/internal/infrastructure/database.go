@@ -27,8 +27,12 @@ func NewDatabase(cfg *config.Config, log *slog.Logger) *gorm.DB {
 
 	err = db.AutoMigrate(&domain.Generation{})
 	if err != nil {
-		log.Error("Failed to auto migrate database", "error", err)
-		panic(err)
+		if err.Error() == "ERROR: relation \"generations\" already exists (SQLSTATE 42P07)" {
+			log.Info("Table 'generations' already exists, skipping migration")
+		} else {
+			log.Error("Failed to auto migrate database", "error", err)
+			panic(err)
+		}
 	}
 
 	log.Info("Database connected and migrated successfully")
