@@ -116,23 +116,30 @@ func (uc *videoGenerationUseCase) GetVideoGenerationStatus(requestID string) (do
 		return domain.Generation{}, fmt.Errorf("failed to get generation status: %w", err)
 	}
 
-	apiStatus, err := uc.fetchVideoGenerationStatus(requestID)
-	if err != nil {
-		uc.logger.Error("Failed to fetch video generation status", "error", err, "requestID", requestID)
-		return *generation, nil
+	// Only fetch from API if the status is Pending or Processing
+	if generation.Status == string(domain.StatusPending) || generation.Status == string(domain.StatusProcessing) {
+		apiStatus, err := uc.fetchVideoGenerationStatus(requestID)
+		if err != nil {
+			uc.logger.Error("Failed to fetch video generation status", "error", err, "requestID", requestID)
+			return *generation, nil
+		}
+
+		// Update generation with API response
+		generation.Status = string(apiStatus.Status)
+		generation.VideoURL = apiStatus.VideoURL
+		generation.ScriptURL = apiStatus.ScriptURL
+		generation.ErrorMessage = apiStatus.ErrorMessage
+		generation.UpdatedAt = time.Unix(apiStatus.UpdatedAt, 0)
+
+		if err := uc.repo.Update(requestID, generation); err != nil {
+			uc.logger.Error("Failed to update generation record", "error", err, "requestID", requestID)
+		}
+
+		uc.logger.Info("Generation status updated", "requestID", requestID, "generation", generation)
+	} else {
+		uc.logger.Info("Generation status not updated (already completed or failed)", "requestID", requestID, "status", generation.Status)
 	}
 
-	generation.Status = string(apiStatus.Status)
-	generation.VideoURL = apiStatus.VideoURL
-	generation.ScriptURL = apiStatus.ScriptURL
-	generation.ErrorMessage = apiStatus.ErrorMessage
-	generation.UpdatedAt = time.Unix(apiStatus.UpdatedAt, 0)
-
-	if err := uc.repo.Update(requestID, generation); err != nil {
-		uc.logger.Error("Failed to update generation record", "error", err, "requestID", requestID)
-	}
-
-	uc.logger.Info("Generation status updated", "requestID", requestID, "generation", generation)
 	return *generation, nil
 }
 

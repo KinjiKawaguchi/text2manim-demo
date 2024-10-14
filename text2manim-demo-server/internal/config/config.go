@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -21,6 +22,8 @@ type Config struct {
 
 	RateLimitRequests int
 	RateLimitInterval time.Duration
+
+	AllowedOrigins []string
 }
 
 func Load(logger *slog.Logger) *Config {
@@ -53,10 +56,11 @@ func Load(logger *slog.Logger) *Config {
 
 		RateLimitRequests: rateLimitRequests,
 		RateLimitInterval: time.Duration(rateLimitInterval) * time.Second,
+
+		AllowedOrigins: strings.Split(getEnv("ALLOWED_ORIGINS", "http://localhost:3000"), ","),
 	}
 
 	logger.Info("Configuration loaded successfully")
-
 	return config
 }
 
