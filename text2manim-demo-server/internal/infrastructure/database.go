@@ -25,12 +25,10 @@ func NewDatabase(cfg *config.Config, log *slog.Logger) *gorm.DB {
 		panic(err)
 	}
 
-	if !db.Migrator().HasTable(&domain.Generation{}) {
-		err = db.AutoMigrate(&domain.Generation{})
-		if err != nil {
-			log.Error("Failed to auto migrate database", "error", err)
-			panic(err)
-		}
+	err = db.AutoMigrate(&domain.Generation{})
+	if err != nil {
+		log.Error("Failed to auto migrate database", "error", err)
+		panic(err)
 	}
 
 	log.Info("Database connected and migrated successfully")

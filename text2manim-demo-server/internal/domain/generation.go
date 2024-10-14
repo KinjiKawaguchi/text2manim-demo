@@ -1,18 +1,18 @@
 package domain
 
-import "time"
+import (
+	"gorm.io/gorm"
+)
 
 type Generation struct {
-	ID           uint      `gorm:"primaryKey"`
-	RequestID    string    `gorm:"unique;not null"`
-	Email        string    `gorm:"not null"`
-	Prompt       string    `gorm:"not null"`
-	Status       string    `gorm:"not null"`
-	VideoURL     string    `gorm:"default:null"`
-	ScriptURL    string    `gorm:"default:null"`
-	ErrorMessage string    `gorm:"default:null"`
-	CreatedAt    time.Time `gorm:"not null"`
-	UpdatedAt    time.Time `gorm:"not null"`
+	gorm.Model
+	RequestID    string `gorm:"unique;not null"`
+	Email        string `gorm:"not null"`
+	Prompt       string `gorm:"not null"`
+	Status       string `gorm:"not null"`
+	VideoURL     string `gorm:"default:null"`
+	ScriptURL    string `gorm:"default:null"`
+	ErrorMessage string `gorm:"default:null"`
 }
 
 type GenerationStatus string
