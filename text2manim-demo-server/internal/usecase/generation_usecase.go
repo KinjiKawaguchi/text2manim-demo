@@ -53,7 +53,6 @@ func (uc *videoGenerationUseCase) RequestVideoGeneration(email, prompt string) (
 		Email:     email,
 		Prompt:    prompt,
 		Status:    string(domain.StatusPending),
-		CreatedAt: time.Now(),
 	}
 
 	if err := uc.repo.Create(generation); err != nil {
