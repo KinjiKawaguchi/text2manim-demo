@@ -12,7 +12,6 @@ import (
 	"text2manim-demo-server/pkg/ratelimiter"
 	"time"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -42,50 +41,49 @@ func NewVideoGenerationUseCase(repo repository.GenerationRepository, limit int, 
 }
 
 func (uc *videoGenerationUseCase) RequestVideoGeneration(email, prompt string) (string, error) {
+	// TODO: Rate limit引っかかったユーザーを保存しておきたい  https://github.com/KinjiKawaguchi/text2manim-demo/issues/15
 	if !uc.rateLimiter.Allow() {
 		uc.logger.Warn("Rate limit exceeded", "email", email)
 		return "", errors.New("rate limit exceeded")
 	}
 
-	requestID := uuid.New().String()
 	generation := &domain.Generation{
-		RequestID: requestID,
-		Email:     email,
-		Prompt:    prompt,
-		Status:    string(domain.StatusPending),
+		Email:  email,
+		Prompt: prompt,
+		Status: string(domain.StatusPending),
 	}
 
 	if err := uc.repo.Create(generation); err != nil {
-		uc.logger.Error("Failed to create generation record", "error", err, "requestID", requestID)
+		uc.logger.Error("Failed to create generation record", "error", err, "id", generation.ID)
 		return "", fmt.Errorf("failed to create generation record: %w", err)
 	}
 
-	if err := uc.initiateVideoGeneration(requestID, prompt); err != nil {
-		uc.logger.Error("Failed to initiate video generation", "error", err, "requestID", requestID)
+	resp, err := uc.initiateVideoGeneration(prompt)
+	if err != nil {
+		uc.logger.Error("Failed to initiate video generation", "error", err, "id", generation.ID)
 		generation.Status = string(domain.StatusFailed)
-		if updateErr := uc.repo.Update(requestID, generation); updateErr != nil {
-			uc.logger.Error("Failed to update generation status", "error", updateErr, "requestID", requestID)
+		if updateErr := uc.repo.Update(generation.ID, generation); updateErr != nil {
+			uc.logger.Error("Failed to update generation status", "error", updateErr, "id", generation.ID)
 		}
-		return requestID, fmt.Errorf("failed to initiate video generation: %w", err)
+		return "", fmt.Errorf("failed to initiate video generation: %w", err)
 	}
 
-	return requestID, nil
+	return resp.RequestID, nil
 }
 
-func (uc *videoGenerationUseCase) initiateVideoGeneration(requestID, prompt string) error {
+func (uc *videoGenerationUseCase) initiateVideoGeneration(prompt string) (*domain.GenerationResponse, error) {
 	payload := map[string]string{
-		"request_id": requestID,
-		"prompt":     prompt,
+		"prompt": prompt,
 	}
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("failed to marshal payload: %w", err)
+		return nil, fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
 	url := fmt.Sprintf("%s/v1/generations", uc.text2ManimAPIURL)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
 	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -94,15 +92,21 @@ func (uc *videoGenerationUseCase) initiateVideoGeneration(requestID, prompt stri
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to send request to video generation API: %w", err)
+		return nil, fmt.Errorf("failed to send request to video generation API: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("video generation API returned non-OK status: %d", resp.StatusCode)
+		return nil, fmt.Errorf("video generation API returned non-OK status: %d", resp.StatusCode)
 	}
 
-	return nil
+	var apiResponse domain.GenerationResponse
+	err = json.NewDecoder(resp.Body).Decode(&apiResponse)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode API response: %w", err)
+	}
+
+	return &apiResponse, nil
 }
 
 func (uc *videoGenerationUseCase) GetVideoGenerationStatus(requestID string) (domain.Generation, error) {
@@ -131,7 +135,7 @@ func (uc *videoGenerationUseCase) GetVideoGenerationStatus(requestID string) (do
 		generation.ErrorMessage = apiStatus.ErrorMessage
 		generation.UpdatedAt = time.Unix(apiStatus.UpdatedAt, 0)
 
-		if err := uc.repo.Update(requestID, generation); err != nil {
+		if err := uc.repo.Update(generation.ID, generation); err != nil {
 			uc.logger.Error("Failed to update generation record", "error", err, "requestID", requestID)
 		}
 
