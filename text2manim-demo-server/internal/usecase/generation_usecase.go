@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"text2manim-demo-server/internal/domain"
@@ -68,10 +69,17 @@ func (uc *videoGenerationUseCase) RequestVideoGeneration(email, prompt string) (
 		return "", fmt.Errorf("failed to initiate video generation: %w", err)
 	}
 
+	// Update the generation record with the request ID
+	generation.RequestID = resp.RequestID
+	if updateErr := uc.repo.Update(generation.ID, generation); updateErr != nil {
+		uc.logger.Error("Failed to update generation with request ID", "error", updateErr, "id", generation.ID)
+		// Note: We don't return an error here as the video generation process has already been initiated
+	}
+
 	return resp.RequestID, nil
 }
 
-func (uc *videoGenerationUseCase) initiateVideoGeneration(prompt string) (*domain.GenerationResponse, error) {
+func (uc *videoGenerationUseCase) initiateVideoGeneration(prompt string) (*domain.CreateGenerationResponse, error) {
 	payload := map[string]string{
 		"prompt": prompt,
 	}
@@ -85,7 +93,6 @@ func (uc *videoGenerationUseCase) initiateVideoGeneration(prompt string) (*domai
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Api-Key", uc.text2ManimAPIKey)
 
@@ -100,8 +107,17 @@ func (uc *videoGenerationUseCase) initiateVideoGeneration(prompt string) (*domai
 		return nil, fmt.Errorf("video generation API returned non-OK status: %d", resp.StatusCode)
 	}
 
-	var apiResponse domain.GenerationResponse
-	err = json.NewDecoder(resp.Body).Decode(&apiResponse)
+	// レスポンスボディを読み取り
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// レスポンスの内容をログに出力
+	uc.logger.Info("API Response", "body", string(body))
+
+	var apiResponse domain.CreateGenerationResponse
+	err = json.Unmarshal(body, &apiResponse)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode API response: %w", err)
 	}
@@ -153,9 +169,7 @@ func (uc *videoGenerationUseCase) fetchVideoGenerationStatus(requestID string) (
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-
 	req.Header.Set("X-Api-Key", uc.text2ManimAPIKey)
-
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -163,14 +177,20 @@ func (uc *videoGenerationUseCase) fetchVideoGenerationStatus(requestID string) (
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("video generation API returned non-OK status: %d", resp.StatusCode)
 	}
 
 	var result struct {
-		GenerationStatus domain.GenerationResponse `json:"generation_status"`
+		GenerationStatus domain.GenerationResponse `json:"generationStatus"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+
+	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, fmt.Errorf("failed to decode API response: %w", err)
 	}
 

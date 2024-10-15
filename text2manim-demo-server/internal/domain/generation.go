@@ -6,7 +6,7 @@ import (
 
 type Generation struct {
 	gorm.Model
-	RequestID    string `gorm:"unique;not null"`
+	RequestID    string `gorm:"not null"`
 	Email        string `gorm:"not null"`
 	Prompt       string `gorm:"not null"`
 	Status       string `gorm:"not null"`
@@ -25,13 +25,18 @@ const (
 	StatusFailed
 )
 
+// jsonの定義を確認
 type GenerationResponse struct {
-	RequestID    string `json:"request_id"`
+	RequestID    string `json:"requestId"`
 	Status       string `json:"status"`
-	VideoURL     string `json:"video_url"`
-	ScriptURL    string `json:"script_url"`
+	VideoURL     string `json:"videoUrl"`
+	ScriptURL    string `json:"scriptUrl"`
 	Prompt       string `json:"prompt"`
-	ErrorMessage string `json:"error_message"`
-	CreatedAt    int64  `json:"created_at"`
-	UpdatedAt    int64  `json:"updated_at"`
+	ErrorMessage string `json:"errorMessage"`
+	CreatedAt    int64  `json:"createdAt"`
+	UpdatedAt    int64  `json:"updatedAt"`
+}
+
+type CreateGenerationResponse struct {
+	RequestID string `json:"requestId"`
 }
