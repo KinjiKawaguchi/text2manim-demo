@@ -33,7 +33,7 @@ func main() {
 
 	r.POST("/v1/generations", handler.CreateGeneration)
 	r.GET("/v1/generations/:request_id", handler.GetGeneration)
-	r.GET("/health", handler.HealthCheck)
+	r.GET("/v1/health", handler.HealthCheck)
 
 	log.Info("Starting server on :8080")
 	if err := r.Run(":8080"); err != nil {
