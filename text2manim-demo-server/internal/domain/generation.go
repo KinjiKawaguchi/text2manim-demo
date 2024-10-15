@@ -33,8 +33,8 @@ type GenerationResponse struct {
 	ScriptURL    string `json:"scriptUrl"`
 	Prompt       string `json:"prompt"`
 	ErrorMessage string `json:"errorMessage"`
-	CreatedAt    int64  `json:"createdAt"`
-	UpdatedAt    int64  `json:"updatedAt"`
+	CreatedAt    string `json:"createdAt"`
+	UpdatedAt    string `json:"updatedAt"`
 }
 
 type CreateGenerationResponse struct {

@@ -149,7 +149,7 @@ func (uc *videoGenerationUseCase) GetVideoGenerationStatus(requestID string) (do
 		generation.VideoURL = apiStatus.VideoURL
 		generation.ScriptURL = apiStatus.ScriptURL
 		generation.ErrorMessage = apiStatus.ErrorMessage
-		generation.UpdatedAt = time.Unix(apiStatus.UpdatedAt, 0)
+		generation.UpdatedAt = time.Now() // TODO: fix this
 
 		if err := uc.repo.Update(generation.ID, generation); err != nil {
 			uc.logger.Error("Failed to update generation record", "error", err, "requestID", requestID)
