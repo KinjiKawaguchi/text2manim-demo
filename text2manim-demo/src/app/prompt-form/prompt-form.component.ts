@@ -9,8 +9,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CookieService } from 'ngx-cookie-service';
 import { GenerationService } from '../services/generation.service';
 import { SubmitButtonComponent } from '../submit-button/submit-button.component';
-import { O } from '@angular/cdk/keycodes';
-
 
 export const MAX_LENGTH: number = 150;
 
@@ -116,11 +114,8 @@ export class PromptFormComponent {
   }
 
   pollGenerationStatus(): void {
-    // Mock request id
+    // Mock Status
     // this.is_loading = true;
-    // this.requestId = `test`;
-    // this.prompt = 'Test prompt';
-    // this.email = 'test@example.com';
 
     const intervalId = setInterval(() => {
       if (!this.is_loading) {

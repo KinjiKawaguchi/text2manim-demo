@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-const apiEndpoint = 'api.text2manim-demo.kawakin.tech:8080';
+const apiEndpoint = 'https://api.text2manim-demo.kawakin.tech';
 
 interface GenerationData {
 	ID: number;
