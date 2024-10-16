@@ -58,11 +58,7 @@ func (uc *videoGenerationUseCase) CreateGeneration(ctx context.Context, email, p
 		return nil, status.Errorf(codes.ResourceExhausted, "rate limit exceeded")
 	}
 
-	generation := &domain.Generation{
-		Email:  email,
-		Prompt: prompt,
-		Status: string(pb.GenerationStatus_STATUS_PENDING),
-	}
+	generation := domain.NewGeneration(email, prompt)
 
 	if err := uc.repo.Create(generation); err != nil {
 		uc.logger.Error("Failed to create generation record", "error", err, "id", generation.ID)
@@ -72,14 +68,14 @@ func (uc *videoGenerationUseCase) CreateGeneration(ctx context.Context, email, p
 	resp, err := uc.text2ManimClient.CreateGeneration(ctx, &pb.CreateGenerationRequest{Prompt: prompt})
 	if err != nil {
 		uc.logger.Error("Failed to initiate video generation", "error", err, "id", generation.ID)
-		generation.Status = string(pb.GenerationStatus_STATUS_FAILED)
+		generation.GenerationStatus.Status = pb.GenerationStatus_STATUS_FAILED
 		if updateErr := uc.repo.Update(generation.ID, generation); updateErr != nil {
 			uc.logger.Error("Failed to update generation status", "error", updateErr, "id", generation.ID)
 		}
 		return nil, status.Errorf(codes.Internal, "failed to initiate video generation: %v", err)
 	}
 
-	generation.RequestID = resp.RequestId
+	generation.GenerationStatus.RequestId = resp.RequestId
 	if updateErr := uc.repo.Update(generation.ID, generation); updateErr != nil {
 		uc.logger.Error("Failed to update generation with request ID", "error", updateErr, "id", generation.ID)
 	}
@@ -104,11 +100,8 @@ func (uc *videoGenerationUseCase) GetGenerationStatus(ctx context.Context, reque
 	}
 
 	// Update local record with API response
-	generation.Status = resp.GenerationStatus.Status.String()
-	generation.VideoURL = resp.GenerationStatus.VideoUrl
-	generation.ScriptURL = resp.GenerationStatus.ScriptUrl
-	generation.ErrorMessage = resp.GenerationStatus.ErrorMessage
-	generation.UpdatedAt = time.Now()
+	generation.GenerationStatus = resp.GenerationStatus
+	generation.GenerationStatus.UpdatedAt = timestamppb.Now()
 
 	if err := uc.repo.Update(generation.ID, generation); err != nil {
 		uc.logger.Error("Failed to update generation record", "error", err, "requestID", requestID)
@@ -124,17 +117,4 @@ func (uc *videoGenerationUseCase) CheckDatabaseConnection(ctx context.Context) e
 func (uc *videoGenerationUseCase) StreamGenerationStatus(ctx context.Context, requestID string, stream pb.Text2ManimService_StreamGenerationStatusServer) error {
 	uc.logger.Warn("StreamGenerationStatus is not implemented")
 	return status.Errorf(codes.Unimplemented, "method not implemented")
-}
-
-func domainToProtoStatus(gen *domain.Generation) *pb.GenerationStatus {
-	return &pb.GenerationStatus{
-		RequestId:    gen.RequestID,
-		Prompt:       gen.Prompt,
-		Status:       pb.GenerationStatus_Status(pb.GenerationStatus_Status_value[gen.Status]),
-		VideoUrl:     gen.VideoURL,
-		ScriptUrl:    gen.ScriptURL,
-		ErrorMessage: gen.ErrorMessage,
-		CreatedAt:    timestamppb.New(gen.CreatedAt),
-		UpdatedAt:    timestamppb.New(gen.UpdatedAt),
-	}
 }

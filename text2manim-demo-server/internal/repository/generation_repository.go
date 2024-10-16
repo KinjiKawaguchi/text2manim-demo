@@ -33,14 +33,14 @@ func (r *generationRepository) Create(generation *domain.Generation) error {
 	if err != nil {
 		r.log.Error("Failed to create generation in database",
 			"error", err,
-			"requestID", generation.RequestID,
+			"requestID", generation.RequestId,
 			"email", generation.Email,
 			"duration", duration)
 		return err
 	}
 
 	r.log.Info("Generation created in database",
-		"requestID", generation.RequestID,
+		"requestID", generation.RequestId,
 		"email", generation.Email,
 		"duration", duration)
 	return nil
