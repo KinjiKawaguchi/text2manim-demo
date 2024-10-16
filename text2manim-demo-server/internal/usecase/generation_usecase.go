@@ -92,6 +92,11 @@ func (uc *videoGenerationUseCase) GetGenerationStatus(ctx context.Context, reque
 		return nil, status.Errorf(codes.Internal, "failed to get generation status: %v", err)
 	}
 
+	if generation.Status == pb.GenerationStatus_STATUS_UNSPECIFIED.String() || generation.Status == pb.GenerationStatus_STATUS_COMPLETED.String() || generation.Status == pb.GenerationStatus_STATUS_FAILED.String() {
+		return &pb.GetGenerationStatusResponse{
+			GenerationStatus: generation.ToProto(),
+		}, nil
+	}
 	resp, err := uc.text2ManimClient.GetGenerationStatus(ctx, &pb.GetGenerationStatusRequest{RequestId: requestID})
 	if err != nil {
 		uc.logger.Error("Failed to fetch video generation status", "error", err, "requestID", requestID)
