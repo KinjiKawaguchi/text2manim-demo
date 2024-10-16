@@ -29,7 +29,7 @@ func (h *Handler) CreateGeneration(c *gin.Context) {
 		return
 	}
 
-	requestID, err := h.useCase.RequestVideoGeneration(request.Email, request.Prompt)
+	requestID, err := h.useCase.CreateGeneration(c, request.Email, request.Prompt)
 	if err != nil {
 		h.log.Error("Failed to create generation", "error", err, "email", request.Email)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -43,7 +43,7 @@ func (h *Handler) CreateGeneration(c *gin.Context) {
 func (h *Handler) GetGeneration(c *gin.Context) {
 	requestID := c.Param("request_id")
 
-	generation, err := h.useCase.GetVideoGenerationStatus(requestID)
+	generation, err := h.useCase.GetGenerationStatus(c, requestID)
 	if err != nil {
 		h.log.Error("Failed to get generation", "error", err, "requestID", requestID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -56,14 +56,14 @@ func (h *Handler) GetGeneration(c *gin.Context) {
 
 func (h *Handler) HealthCheck(c *gin.Context) {
 	// データベース接続を確認
-	if err := h.useCase.CheckDatabaseConnection(); err != nil {
+	if err := h.useCase.CheckDatabaseConnection(c); err != nil {
 		h.log.Error("Database health check failed", "error", err)
 		c.JSON(http.StatusServiceUnavailable, gin.H{"status": "unhealthy", "message": "Database connection failed"})
 		return
 	}
 
 	// 動画生成APIの状態を確認
-	if err := h.useCase.CheckText2ManimAPIConnection(); err != nil {
+	if err := h.useCase.HealthCheck(c); err != nil {
 		h.log.Error("Video API health check failed", "error", err)
 		c.JSON(http.StatusServiceUnavailable, gin.H{"status": "unhealthy", "message": "Video API connection failed"})
 		return

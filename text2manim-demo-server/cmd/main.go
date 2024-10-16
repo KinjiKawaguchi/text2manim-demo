@@ -8,8 +8,11 @@ import (
 	"text2manim-demo-server/internal/usecase"
 	"text2manim-demo-server/pkg/logger"
 
+	pb "github.com/KinjiKawaguchi/text2manim/api/pkg/pb/text2manim/v1"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -17,7 +20,15 @@ func main() {
 	cfg := config.Load(log)
 	db := infrastructure.NewDatabase(cfg, log)
 	repo := repository.NewGenerationRepository(db, log)
-	useCase := usecase.NewVideoGenerationUseCase(repo, cfg.RateLimitRequests, cfg.RateLimitInterval, cfg.Text2manimApiEndpoint, cfg.Text2manimApiKey, log)
+	conn, err := grpc.NewClient(cfg.Text2manimApiEndpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Error("Failed to connect to Text2Manim API", "error", err)
+	}
+	defer conn.Close()
+
+	text2ManimClient := pb.NewText2ManimServiceClient(conn)
+
+	useCase := usecase.NewVideoGenerationUseCase(repo, cfg.RateLimitRequests, cfg.RateLimitInterval, text2ManimClient, log)
 	handler := api.NewHandler(useCase, log)
 
 	r := gin.Default()

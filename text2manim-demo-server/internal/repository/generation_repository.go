@@ -57,12 +57,12 @@ func (r *generationRepository) FindByRequestID(requestID string) (*domain.Genera
 			r.log.Warn("Generation not found",
 				"requestID", requestID,
 				"duration", duration)
-		} else {
-			r.log.Error("Failed to find generation",
-				"error", err,
-				"requestID", requestID,
-				"duration", duration)
+			return nil, err
 		}
+		r.log.Error("Failed to find generation",
+			"error", err,
+			"requestID", requestID,
+			"duration", duration)
 		return nil, err
 	}
 

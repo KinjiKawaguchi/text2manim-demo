@@ -1,42 +1,54 @@
 package domain
 
 import (
+	pb "github.com/KinjiKawaguchi/text2manim/api/pkg/pb/text2manim/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
 
 type Generation struct {
 	gorm.Model
-	RequestID    string `gorm:"not null"`
-	Email        string `gorm:"not null"`
-	Prompt       string `gorm:"not null"`
-	Status       string `gorm:"not null"`
-	VideoURL     string `gorm:"default:null"`
-	ScriptURL    string `gorm:"default:null"`
-	ErrorMessage string `gorm:"default:null"`
+	pb.GenerationStatus
+	Email string `gorm:"not null"`
 }
 
-type GenerationStatus int
-
-const (
-	StatusUnspecified GenerationStatus = iota
-	StatusPending
-	StatusProcessing
-	StatusCompleted
-	StatusFailed
-)
-
-// jsonの定義を確認
-type GenerationResponse struct {
-	RequestID    string `json:"requestId"`
-	Status       string `json:"status"`
-	VideoURL     string `json:"videoUrl"`
-	ScriptURL    string `json:"scriptUrl"`
-	Prompt       string `json:"prompt"`
-	ErrorMessage string `json:"errorMessage"`
-	CreatedAt    string `json:"createdAt"`
-	UpdatedAt    string `json:"updatedAt"`
+func NewGeneration(email, prompt string) *Generation {
+	return &Generation{
+		GenerationStatus: pb.GenerationStatus{
+			RequestId:    "", // これは後で設定します
+			Prompt:       prompt,
+			Status:       pb.GenerationStatus_STATUS_PENDING,
+			VideoUrl:     "",
+			ScriptUrl:    "",
+			ErrorMessage: "",
+			CreatedAt:    timestamppb.Now(),
+			UpdatedAt:    timestamppb.Now(),
+		},
+		Email: email,
+	}
 }
 
-type CreateGenerationResponse struct {
-	RequestID string `json:"requestId"`
+func (g *Generation) ToProto() *pb.GenerationStatus {
+	return &g.GenerationStatus
+}
+
+func (g *Generation) FromProto(status *pb.GenerationStatus) {
+	g.GenerationStatus = *status
+}
+
+func (g *Generation) BeforeCreate(tx *gorm.DB) error {
+	g.Model.ID = 0 // Auto-increment
+	return nil
+}
+
+func (g *Generation) AfterFind(tx *gorm.DB) error {
+	// GORMのタイムスタンプをProtobufのタイムスタンプに変換
+	g.GenerationStatus.CreatedAt = timestamppb.New(g.Model.CreatedAt)
+	g.GenerationStatus.UpdatedAt = timestamppb.New(g.Model.UpdatedAt)
+	return nil
+}
+
+func (g *Generation) BeforeSave(tx *gorm.DB) error {
+	g.GenerationStatus.UpdatedAt = timestamppb.Now()
+	return nil
 }
