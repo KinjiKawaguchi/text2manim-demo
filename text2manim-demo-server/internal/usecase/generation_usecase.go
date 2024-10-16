@@ -22,7 +22,7 @@ import (
 type VideoGenerationUseCase interface {
 	HealthCheck(ctx context.Context) error
 	CreateGeneration(ctx context.Context, email, prompt string) (*pb.CreateGenerationResponse, error)
-	GetGenerationStatus(ctx context.Context, requestID string) (*pb.GetGenerationStatusResponse, error)
+	GetGenerationStatus(ctx context.Context, requestID string) (*domain.Generation, error)
 	StreamGenerationStatus(ctx context.Context, requestID string, stream pb.Text2ManimService_StreamGenerationStatusServer) error
 	CheckDatabaseConnection(ctx context.Context) error
 }
@@ -82,7 +82,7 @@ func (uc *videoGenerationUseCase) CreateGeneration(ctx context.Context, email, p
 	return resp, nil
 }
 
-func (uc *videoGenerationUseCase) GetGenerationStatus(ctx context.Context, requestID string) (*pb.GetGenerationStatusResponse, error) {
+func (uc *videoGenerationUseCase) GetGenerationStatus(ctx context.Context, requestID string) (*domain.Generation, error) {
 	generation, err := uc.repo.FindByRequestID(requestID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -93,9 +93,7 @@ func (uc *videoGenerationUseCase) GetGenerationStatus(ctx context.Context, reque
 	}
 
 	if generation.Status == pb.GenerationStatus_STATUS_UNSPECIFIED.String() || generation.Status == pb.GenerationStatus_STATUS_COMPLETED.String() || generation.Status == pb.GenerationStatus_STATUS_FAILED.String() {
-		return &pb.GetGenerationStatusResponse{
-			GenerationStatus: generation.ToProto(),
-		}, nil
+		return generation, nil
 	}
 	resp, err := uc.text2ManimClient.GetGenerationStatus(ctx, &pb.GetGenerationStatusRequest{RequestId: requestID})
 	if err != nil {
@@ -110,9 +108,7 @@ func (uc *videoGenerationUseCase) GetGenerationStatus(ctx context.Context, reque
 		uc.logger.Error("Failed to update generation record", "error", err, "requestID", requestID)
 	}
 
-	return &pb.GetGenerationStatusResponse{
-		GenerationStatus: generation.ToProto(),
-	}, nil
+	return generation, nil
 }
 
 func (uc *videoGenerationUseCase) CheckDatabaseConnection(ctx context.Context) error {
