@@ -114,9 +114,6 @@ export class PromptFormComponent {
   }
 
   pollGenerationStatus(): void {
-    // Mock Status
-    // this.is_loading = true;
-
     const intervalId = setInterval(() => {
       if (!this.is_loading) {
         clearInterval(intervalId);
@@ -142,6 +139,6 @@ export class PromptFormComponent {
           clearInterval(intervalId);
         },
       });
-    }, 3000);
+    }, 10000);
   }
 }
