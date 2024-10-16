@@ -12,7 +12,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 )
 
 func main() {
@@ -20,7 +20,11 @@ func main() {
 	cfg := config.Load(log)
 	db := infrastructure.NewDatabase(cfg, log)
 	repo := repository.NewGenerationRepository(db, log)
-	conn, err := grpc.NewClient(cfg.Text2manimApiEndpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	log.Info("Connecting to Text2Manim API", "endpoint", cfg.Text2manimApiEndpoint)
+	creds := credentials.NewClientTLSFromCert(nil, "")
+
+	// セキュアなチャネルを通じてサーバーに接続
+	conn, err := grpc.NewClient(cfg.Text2manimApiEndpoint, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Error("Failed to connect to Text2Manim API", "error", err)
 	}
