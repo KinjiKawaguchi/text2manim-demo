@@ -8,13 +8,13 @@ import (
 
 type Generation struct {
 	gorm.Model
-	pb.GenerationStatus
+	*pb.GenerationStatus
 	Email string `gorm:"not null"`
 }
 
 func NewGeneration(email, prompt string) *Generation {
 	return &Generation{
-		GenerationStatus: pb.GenerationStatus{
+		GenerationStatus: &pb.GenerationStatus{
 			RequestId:    "", // これは後で設定します
 			Prompt:       prompt,
 			Status:       pb.GenerationStatus_STATUS_PENDING,
@@ -29,11 +29,11 @@ func NewGeneration(email, prompt string) *Generation {
 }
 
 func (g *Generation) ToProto() *pb.GenerationStatus {
-	return &g.GenerationStatus
+	return g.GenerationStatus
 }
 
 func (g *Generation) FromProto(status *pb.GenerationStatus) {
-	g.GenerationStatus = *status
+	g.GenerationStatus = status
 }
 
 func (g *Generation) BeforeCreate(tx *gorm.DB) error {
