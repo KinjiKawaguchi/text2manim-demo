@@ -8,7 +8,6 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 
 	"text2manim-demo-server/internal/domain"
@@ -68,14 +67,14 @@ func (uc *videoGenerationUseCase) CreateGeneration(ctx context.Context, email, p
 	resp, err := uc.text2ManimClient.CreateGeneration(ctx, &pb.CreateGenerationRequest{Prompt: prompt})
 	if err != nil {
 		uc.logger.Error("Failed to initiate video generation", "error", err, "id", generation.ID)
-		generation.GenerationStatus.Status = pb.GenerationStatus_STATUS_FAILED
+		generation.Status = pb.GenerationStatus_STATUS_FAILED.String()
 		if updateErr := uc.repo.Update(generation.ID, generation); updateErr != nil {
 			uc.logger.Error("Failed to update generation status", "error", updateErr, "id", generation.ID)
 		}
 		return nil, status.Errorf(codes.Internal, "failed to initiate video generation: %v", err)
 	}
 
-	generation.GenerationStatus.RequestId = resp.RequestId
+	generation.RequestId = resp.RequestId
 	if updateErr := uc.repo.Update(generation.ID, generation); updateErr != nil {
 		uc.logger.Error("Failed to update generation with request ID", "error", updateErr, "id", generation.ID)
 	}
@@ -100,14 +99,15 @@ func (uc *videoGenerationUseCase) GetGenerationStatus(ctx context.Context, reque
 	}
 
 	// Update local record with API response
-	generation.GenerationStatus = resp.GenerationStatus
-	generation.GenerationStatus.UpdatedAt = timestamppb.Now()
+	generation.FromProto(resp.GenerationStatus)
 
 	if err := uc.repo.Update(generation.ID, generation); err != nil {
 		uc.logger.Error("Failed to update generation record", "error", err, "requestID", requestID)
 	}
 
-	return resp, nil
+	return &pb.GetGenerationStatusResponse{
+		GenerationStatus: generation.ToProto(),
+	}, nil
 }
 
 func (uc *videoGenerationUseCase) CheckDatabaseConnection(ctx context.Context) error {

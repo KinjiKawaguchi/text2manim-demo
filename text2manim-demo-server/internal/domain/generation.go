@@ -8,47 +8,42 @@ import (
 
 type Generation struct {
 	gorm.Model
-	*pb.GenerationStatus
-	Email string `gorm:"not null"`
+	RequestId    string `gorm:"column:request_id"`
+	Prompt       string `gorm:"column:prompt"`
+	Status       string `gorm:"column:status"`
+	VideoUrl     string `gorm:"column:video_url"`
+	ScriptUrl    string `gorm:"column:script_url"`
+	ErrorMessage string `gorm:"column:error_message"`
+	Email        string `gorm:"column:email;not null"`
 }
 
 func NewGeneration(email, prompt string) *Generation {
 	return &Generation{
-		GenerationStatus: &pb.GenerationStatus{
-			RequestId:    "", // これは後で設定します
-			Prompt:       prompt,
-			Status:       pb.GenerationStatus_STATUS_PENDING,
-			VideoUrl:     "",
-			ScriptUrl:    "",
-			ErrorMessage: "",
-			CreatedAt:    timestamppb.Now(),
-			UpdatedAt:    timestamppb.Now(),
-		},
-		Email: email,
+		Prompt: prompt,
+		Status: pb.GenerationStatus_STATUS_PENDING.String(),
+		Email:  email,
 	}
 }
 
 func (g *Generation) ToProto() *pb.GenerationStatus {
-	return g.GenerationStatus
+	return &pb.GenerationStatus{
+		RequestId:    g.RequestId,
+		Prompt:       g.Prompt,
+		Status:       pb.GenerationStatus_Status(pb.GenerationStatus_Status_value[g.Status]),
+		VideoUrl:     g.VideoUrl,
+		ScriptUrl:    g.ScriptUrl,
+		ErrorMessage: g.ErrorMessage,
+		CreatedAt:    timestamppb.New(g.CreatedAt),
+		UpdatedAt:    timestamppb.New(g.UpdatedAt),
+	}
 }
 
 func (g *Generation) FromProto(status *pb.GenerationStatus) {
-	g.GenerationStatus = status
-}
-
-func (g *Generation) BeforeCreate(tx *gorm.DB) error {
-	g.Model.ID = 0 // Auto-increment
-	return nil
-}
-
-func (g *Generation) AfterFind(tx *gorm.DB) error {
-	// GORMのタイムスタンプをProtobufのタイムスタンプに変換
-	g.GenerationStatus.CreatedAt = timestamppb.New(g.Model.CreatedAt)
-	g.GenerationStatus.UpdatedAt = timestamppb.New(g.Model.UpdatedAt)
-	return nil
-}
-
-func (g *Generation) BeforeSave(tx *gorm.DB) error {
-	g.GenerationStatus.UpdatedAt = timestamppb.Now()
-	return nil
+	g.RequestId = status.RequestId
+	g.Prompt = status.Prompt
+	g.Status = status.Status.String()
+	g.VideoUrl = status.VideoUrl
+	g.ScriptUrl = status.ScriptUrl
+	g.ErrorMessage = status.ErrorMessage
+	// CreatedAtとUpdatedAtはgorm.Modelから自動的に管理されるため、ここでは設定しません
 }
