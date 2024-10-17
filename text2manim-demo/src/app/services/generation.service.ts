@@ -11,8 +11,8 @@ interface GenerationData {
 	Email: string;
 	Prompt: string;
 	Status: string;
-	VideoURL: string;
-	ScriptURL: string;
+	VideoUrl: string;
+	ScriptUrl: string;
 	ErrorMessage: string;
 	CreatedAt: string;
 	UpdatedAt: string;

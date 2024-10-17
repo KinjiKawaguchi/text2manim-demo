@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, Output, EventEmitter, inject } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
@@ -37,15 +37,24 @@ export class PromptFormComponent {
   email: string = '';
   is_loading: boolean = false;
   requestId: string = '';
+  videoUrl: string = '';
 
   readonly maxLength: number = MAX_LENGTH;
   charCount: number = 0;
+
+  @Output() videoUrlChange: EventEmitter<string> = new EventEmitter<string>();
 
   constructor() {
     const savedEmail = this.cookieService.get('email');
     if (savedEmail) {
       this.email = savedEmail;
     }
+  }
+
+  private setVideoUrl(videoUrl: string): void {
+    console.log('Setting video URL:', videoUrl);
+    this.videoUrl = videoUrl;
+    this.videoUrlChange.emit(videoUrl);
   }
 
   updateCharCount(): void {
@@ -95,7 +104,6 @@ export class PromptFormComponent {
   }
 
   sendPostRequest(email: string): void {
-
     this.is_loading = true;
 
     this.generationService.sendGenerationRequest(this.prompt, email).subscribe({
@@ -115,7 +123,8 @@ export class PromptFormComponent {
 
   pollGenerationStatus(): void {
     // Mock Status
-    // this.is_loading = true;
+    this.is_loading = true;
+    this.requestId = 'test1';
 
     const intervalId = setInterval(() => {
       if (!this.is_loading) {
@@ -125,11 +134,13 @@ export class PromptFormComponent {
 
       this.generationService.getGenerationStatus(this.requestId).subscribe({
         next: (response) => {
-          if (response.Status == 'COMPLETED') {
+          if (response.Status == 'STATUS_COMPLETED') {
             this.is_loading = false;
+            console.log('Generation completed:', response);
+            this.setVideoUrl(response.VideoUrl);
             this.openSnackBar('Generation completed successfully!');
             clearInterval(intervalId);
-          } else if (response.Status == 'FAILED') {
+          } else if (response.Status == 'STATUS_FAILED') {
             this.is_loading = false;
             this.openSnackBar('Generation failed');
             clearInterval(intervalId);
@@ -142,6 +153,6 @@ export class PromptFormComponent {
           clearInterval(intervalId);
         },
       });
-    }, 3000);
+    }, 10000);
   }
 }
