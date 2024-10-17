@@ -1,3 +1,5 @@
 <main>
-	<app-prompt-form></app-prompt-form>
+	<app-prompt-form *ngIf="!videoUrl" (videoUrlChange)="handleVideoUrlChange($event)"></app-prompt-form>
+	<app-generated-video-player *ngIf="videoUrl" [videoUrl]="videoUrl"></app-generated-video-player>
+	<button mat-button *ngIf="videoUrl" (click)="clearVideoUrl()">Back to prompt page.</button>
 </main>
