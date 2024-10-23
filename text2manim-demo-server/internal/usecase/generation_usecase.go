@@ -10,7 +10,8 @@ import (
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
 
-	"text2manim-demo-server/internal/domain"
+	"text2manim-demo-server/internal/domain/ent"
+	"text2manim-demo-server/internal/domain/mapper"
 	"text2manim-demo-server/internal/repository"
 	"text2manim-demo-server/pkg/ratelimiter"
 
@@ -22,7 +23,7 @@ import (
 type VideoGenerationUseCase interface {
 	HealthCheck(ctx context.Context) error
 	CreateGeneration(ctx context.Context, email, prompt string) (*pb.CreateGenerationResponse, error)
-	GetGenerationStatus(ctx context.Context, requestID string) (*domain.Generation, error)
+	GetGenerationStatus(ctx context.Context, requestID string) (*ent.Generation, error)
 	StreamGenerationStatus(ctx context.Context, requestID string, stream pb.Text2ManimService_StreamGenerationStatusServer) error
 	CheckDatabaseConnection(ctx context.Context) error
 }
@@ -57,9 +58,13 @@ func (uc *videoGenerationUseCase) CreateGeneration(ctx context.Context, email, p
 		return nil, status.Errorf(codes.ResourceExhausted, "rate limit exceeded")
 	}
 
-	generation := domain.NewGeneration(email, prompt)
+	generation := &ent.Generation{
+		Email:  email,
+		Prompt: prompt,
+	}
 
-	if err := uc.repo.Create(generation); err != nil {
+	generation, err := uc.repo.Create(ctx, generation)
+	if err != nil {
 		uc.logger.Error("Failed to create generation record", "error", err, "id", generation.ID)
 		return nil, status.Errorf(codes.Internal, "failed to create generation record: %v", err)
 	}
@@ -68,22 +73,22 @@ func (uc *videoGenerationUseCase) CreateGeneration(ctx context.Context, email, p
 	if err != nil {
 		uc.logger.Error("Failed to initiate video generation", "error", err, "id", generation.ID)
 		generation.Status = pb.GenerationStatus_STATUS_FAILED.String()
-		if updateErr := uc.repo.Update(generation.ID, generation); updateErr != nil {
+		if updateErr := uc.repo.Update(ctx, generation.ID, generation); updateErr != nil {
 			uc.logger.Error("Failed to update generation status", "error", updateErr, "id", generation.ID)
 		}
 		return nil, status.Errorf(codes.Internal, "failed to initiate video generation: %v", err)
 	}
 
-	generation.RequestId = resp.RequestId
-	if updateErr := uc.repo.Update(generation.ID, generation); updateErr != nil {
+	generation.RequestID = resp.RequestId
+	if updateErr := uc.repo.Update(ctx, generation.ID, generation); updateErr != nil {
 		uc.logger.Error("Failed to update generation with request ID", "error", updateErr, "id", generation.ID)
 	}
 
 	return resp, nil
 }
 
-func (uc *videoGenerationUseCase) GetGenerationStatus(ctx context.Context, requestID string) (*domain.Generation, error) {
-	generation, err := uc.repo.FindByRequestID(requestID)
+func (uc *videoGenerationUseCase) GetGenerationStatus(ctx context.Context, requestID string) (*ent.Generation, error) {
+	generation, err := uc.repo.FindByRequestID(ctx, requestID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, status.Errorf(codes.NotFound, "generation not found")
@@ -102,9 +107,9 @@ func (uc *videoGenerationUseCase) GetGenerationStatus(ctx context.Context, reque
 	}
 
 	// Update local record with API response
-	generation.FromProto(resp.GenerationStatus)
+	mapper.FromProto(generation, resp.GenerationStatus) // proto -> generation
 
-	if err := uc.repo.Update(generation.ID, generation); err != nil {
+	if err := uc.repo.Update(ctx, generation.ID, generation); err != nil {
 		uc.logger.Error("Failed to update generation record", "error", err, "requestID", requestID)
 	}
 
@@ -112,7 +117,7 @@ func (uc *videoGenerationUseCase) GetGenerationStatus(ctx context.Context, reque
 }
 
 func (uc *videoGenerationUseCase) CheckDatabaseConnection(ctx context.Context) error {
-	return uc.repo.Ping()
+	return uc.repo.Ping(ctx)
 }
 
 func (uc *videoGenerationUseCase) StreamGenerationStatus(ctx context.Context, requestID string, stream pb.Text2ManimService_StreamGenerationStatusServer) error {

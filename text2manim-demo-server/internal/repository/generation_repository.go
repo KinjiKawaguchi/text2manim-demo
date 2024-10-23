@@ -1,81 +1,102 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
-	"text2manim-demo-server/internal/domain"
+	"text2manim-demo-server/internal/domain/ent"
+	"text2manim-demo-server/internal/domain/ent/generation"
 	"time"
 
-	"gorm.io/gorm"
+	"github.com/google/uuid"
 )
 
 type GenerationRepository interface {
-	Create(generation *domain.Generation) error
-	FindByRequestID(requestID string) (*domain.Generation, error)
-	Update(ID uint, generation *domain.Generation) error
-	Ping() error
+	Create(ctx context.Context, generation *ent.Generation) (*ent.Generation, error)
+	FindByRequestID(ctx context.Context, requestID string) (*ent.Generation, error)
+	Update(ctx context.Context, ID uuid.UUID, generation *ent.Generation) error
+	Ping(ctx context.Context) error
 }
 
 type generationRepository struct {
-	db  *gorm.DB
-	log *slog.Logger
+	entClient     *ent.Client
+	log           *slog.Logger
+	notFoundError error
 }
 
-func NewGenerationRepository(db *gorm.DB, log *slog.Logger) GenerationRepository {
-	return &generationRepository{db: db, log: log}
+func NewGenerationRepository(entClient *ent.Client, log *slog.Logger) GenerationRepository {
+	return &generationRepository{entClient: entClient, log: log}
 }
 
-func (r *generationRepository) Create(generation *domain.Generation) error {
+func (r *generationRepository) Create(ctx context.Context, generation *ent.Generation) (*ent.Generation, error) {
 	start := time.Now()
-	err := r.db.Create(generation).Error
+	createdGeneration, err := r.entClient.Generation.Create().
+		SetRequestID(generation.RequestID).
+		SetPrompt(generation.Prompt).
+		SetStatus(generation.Status).
+		SetVideoURL(generation.VideoURL).
+		SetScriptURL(generation.ScriptURL).
+		SetErrorMessage(generation.ErrorMessage).
+		SetEmail(generation.Email).
+		Save(ctx)
 	duration := time.Since(start)
 
 	if err != nil {
 		r.log.Error("Failed to create generation in database",
 			"error", err,
-			"requestID", generation.RequestId,
+			"requestID", generation.RequestID,
 			"email", generation.Email,
 			"duration", duration)
-		return err
+		return nil, fmt.Errorf("failed to create generation: %w", err)
 	}
 
 	r.log.Info("Generation created in database",
-		"requestID", generation.RequestId,
+		"requestID", generation.RequestID,
 		"email", generation.Email,
 		"duration", duration)
-	return nil
+	return createdGeneration, nil
 }
 
-func (r *generationRepository) FindByRequestID(requestID string) (*domain.Generation, error) {
+func (r *generationRepository) FindByRequestID(ctx context.Context, requestID string) (*ent.Generation, error) {
 	start := time.Now()
-	var generation domain.Generation
-	err := r.db.Where("request_id = ?", requestID).First(&generation).Error
+	generation, err := r.entClient.Generation.Query().
+		Where(generation.RequestID(requestID)).
+		Only(ctx)
 	duration := time.Since(start)
 
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if ent.IsNotFound(err) {
 			r.log.Warn("Generation not found",
 				"requestID", requestID,
 				"duration", duration)
-			return nil, err
+			return nil, fmt.Errorf("generation not found: %w", err)
 		}
 		r.log.Error("Failed to find generation",
 			"error", err,
 			"requestID", requestID,
 			"duration", duration)
-		return nil, err
+		return nil, fmt.Errorf("failed to find generation: %w", err)
 	}
 
 	r.log.Info("Generation found",
 		"requestID", requestID,
 		"status", generation.Status,
 		"duration", duration)
-	return &generation, nil
+	return generation, nil
 }
 
-func (r *generationRepository) Update(ID uint, generation *domain.Generation) error {
+func (r *generationRepository) Update(ctx context.Context, ID uuid.UUID, generation *ent.Generation) error {
 	start := time.Now()
-	err := r.db.Model(&domain.Generation{}).Where("id = ?", ID).Updates(generation).Error
+
+	_, err := r.entClient.Generation.UpdateOneID(ID).
+		SetRequestID(generation.RequestID).
+		SetPrompt(generation.Prompt).
+		SetStatus(generation.Status).
+		SetVideoURL(generation.VideoURL).
+		SetScriptURL(generation.ScriptURL).
+		SetErrorMessage(generation.ErrorMessage).
+		SetEmail(generation.Email).
+		Save(ctx)
 	duration := time.Since(start)
 
 	if err != nil {
@@ -84,7 +105,7 @@ func (r *generationRepository) Update(ID uint, generation *domain.Generation) er
 			"ID", ID,
 			"status", generation.Status,
 			"duration", duration)
-		return err
+		return fmt.Errorf("failed to update generation: %w", err)
 	}
 
 	r.log.Info("Generation status updated",
@@ -94,10 +115,6 @@ func (r *generationRepository) Update(ID uint, generation *domain.Generation) er
 	return nil
 }
 
-func (r *generationRepository) Ping() error {
-	db, err := r.db.DB()
-	if err != nil {
-		return fmt.Errorf("failed to get database instance: %w", err)
-	}
-	return db.Ping()
+func (r *generationRepository) Ping(ctx context.Context) error {
+	return r.entClient.Schema.Create(ctx)
 }
