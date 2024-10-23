@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"text2manim-demo-server/internal/config"
 	"text2manim-demo-server/internal/domain/ent"
+
+	_ "github.com/lib/pq"
 )
 
 func NewEntClient(cfg *config.Config, log *slog.Logger) *ent.Client {
