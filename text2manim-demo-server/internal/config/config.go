@@ -11,6 +11,9 @@ import (
 )
 
 type Config struct {
+	Environment string
+	ServerPort  string
+
 	SupabaseHost     string
 	SupabaseUser     string
 	SupabasePassword string
@@ -45,6 +48,9 @@ func Load(logger *slog.Logger) *Config {
 	}
 
 	config := &Config{
+		Environment: getEnv("ENVIRONMENT", "development"),
+		ServerPort:  getEnv("SERVER_PORT", "8080"),
+
 		SupabaseHost:     getEnv("SUPABASE_HOST", ""),
 		SupabaseUser:     getEnv("SUPABASE_USER", ""),
 		SupabasePassword: getEnv("SUPABASE_PASSWORD", ""),
