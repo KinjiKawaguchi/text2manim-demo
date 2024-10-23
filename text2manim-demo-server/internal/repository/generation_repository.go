@@ -19,9 +19,8 @@ type GenerationRepository interface {
 }
 
 type generationRepository struct {
-	entClient     *ent.Client
-	log           *slog.Logger
-	notFoundError error
+	entClient *ent.Client
+	log       *slog.Logger
 }
 
 func NewGenerationRepository(entClient *ent.Client, log *slog.Logger) GenerationRepository {
@@ -30,30 +29,55 @@ func NewGenerationRepository(entClient *ent.Client, log *slog.Logger) Generation
 
 func (r *generationRepository) Create(ctx context.Context, generation *ent.Generation) (*ent.Generation, error) {
 	start := time.Now()
-	createdGeneration, err := r.entClient.Generation.Create().
-		SetRequestID(generation.RequestID).
-		SetPrompt(generation.Prompt).
-		SetStatus(generation.Status).
-		SetVideoURL(generation.VideoURL).
-		SetScriptURL(generation.ScriptURL).
-		SetErrorMessage(generation.ErrorMessage).
-		SetEmail(generation.Email).
-		Save(ctx)
-	duration := time.Since(start)
 
+	// Createのビルダーを開始
+	creator := r.entClient.Generation.Create()
+
+	if generation.Prompt != "" {
+		creator.SetPrompt(generation.Prompt)
+	}
+
+	if generation.Email != "" {
+		creator.SetEmail(generation.Email)
+	}
+
+	if generation.Status != "" {
+		creator.SetStatus(generation.Status)
+	}
+
+	if generation.RequestID != "" {
+		creator.SetRequestID(generation.RequestID)
+	}
+
+	if generation.VideoURL != "" {
+		creator.SetVideoURL(generation.VideoURL)
+	}
+
+	if generation.ScriptURL != "" {
+		creator.SetScriptURL(generation.ScriptURL)
+	}
+
+	if generation.ErrorMessage != "" {
+		creator.SetErrorMessage(generation.ErrorMessage)
+	}
+
+	// 保存を実行
+	createdGeneration, err := creator.Save(ctx)
+
+	duration := time.Since(start)
 	if err != nil {
 		r.log.Error("Failed to create generation in database",
 			"error", err,
-			"requestID", generation.RequestID,
 			"email", generation.Email,
 			"duration", duration)
 		return nil, fmt.Errorf("failed to create generation: %w", err)
 	}
 
 	r.log.Info("Generation created in database",
-		"requestID", generation.RequestID,
+		"id", createdGeneration.ID,
 		"email", generation.Email,
 		"duration", duration)
+
 	return createdGeneration, nil
 }
 
@@ -88,15 +112,38 @@ func (r *generationRepository) FindByRequestID(ctx context.Context, requestID st
 func (r *generationRepository) Update(ctx context.Context, ID uuid.UUID, generation *ent.Generation) error {
 	start := time.Now()
 
-	_, err := r.entClient.Generation.UpdateOneID(ID).
-		SetRequestID(generation.RequestID).
-		SetPrompt(generation.Prompt).
-		SetStatus(generation.Status).
-		SetVideoURL(generation.VideoURL).
-		SetScriptURL(generation.ScriptURL).
-		SetErrorMessage(generation.ErrorMessage).
-		SetEmail(generation.Email).
-		Save(ctx)
+	updater := r.entClient.Generation.UpdateOneID(ID)
+
+	if generation.RequestID != "" {
+		updater.SetRequestID(generation.RequestID)
+	}
+
+	if generation.Prompt != "" {
+		updater.SetPrompt(generation.Prompt)
+	}
+
+	if generation.Status != "" {
+		updater.SetStatus(generation.Status)
+	}
+
+	if generation.VideoURL != "" {
+		updater.SetVideoURL(generation.VideoURL)
+	}
+
+	if generation.ScriptURL != "" {
+		updater.SetScriptURL(generation.ScriptURL)
+	}
+
+	if generation.ErrorMessage != "" {
+		updater.SetErrorMessage(generation.ErrorMessage)
+	}
+
+	if generation.Email != "" {
+		updater.SetEmail(generation.Email)
+	}
+
+	updatedGeneration, err := updater.Save(ctx)
+
 	duration := time.Since(start)
 
 	if err != nil {
@@ -110,7 +157,7 @@ func (r *generationRepository) Update(ctx context.Context, ID uuid.UUID, generat
 
 	r.log.Info("Generation status updated",
 		"ID", ID,
-		"status", generation.Status,
+		"status", updatedGeneration.Status,
 		"duration", duration)
 	return nil
 }

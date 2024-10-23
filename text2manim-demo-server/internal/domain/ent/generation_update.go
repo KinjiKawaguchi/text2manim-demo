@@ -42,6 +42,12 @@ func (gu *GenerationUpdate) SetNillableRequestID(s *string) *GenerationUpdate {
 	return gu
 }
 
+// ClearRequestID clears the value of the "request_id" field.
+func (gu *GenerationUpdate) ClearRequestID() *GenerationUpdate {
+	gu.mutation.ClearRequestID()
+	return gu
+}
+
 // SetPrompt sets the "prompt" field.
 func (gu *GenerationUpdate) SetPrompt(s string) *GenerationUpdate {
 	gu.mutation.SetPrompt(s)
@@ -53,6 +59,12 @@ func (gu *GenerationUpdate) SetNillablePrompt(s *string) *GenerationUpdate {
 	if s != nil {
 		gu.SetPrompt(*s)
 	}
+	return gu
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (gu *GenerationUpdate) ClearPrompt() *GenerationUpdate {
+	gu.mutation.ClearPrompt()
 	return gu
 }
 
@@ -84,6 +96,12 @@ func (gu *GenerationUpdate) SetNillableVideoURL(s *string) *GenerationUpdate {
 	return gu
 }
 
+// ClearVideoURL clears the value of the "video_url" field.
+func (gu *GenerationUpdate) ClearVideoURL() *GenerationUpdate {
+	gu.mutation.ClearVideoURL()
+	return gu
+}
+
 // SetScriptURL sets the "script_url" field.
 func (gu *GenerationUpdate) SetScriptURL(s string) *GenerationUpdate {
 	gu.mutation.SetScriptURL(s)
@@ -95,6 +113,12 @@ func (gu *GenerationUpdate) SetNillableScriptURL(s *string) *GenerationUpdate {
 	if s != nil {
 		gu.SetScriptURL(*s)
 	}
+	return gu
+}
+
+// ClearScriptURL clears the value of the "script_url" field.
+func (gu *GenerationUpdate) ClearScriptURL() *GenerationUpdate {
+	gu.mutation.ClearScriptURL()
 	return gu
 }
 
@@ -112,6 +136,12 @@ func (gu *GenerationUpdate) SetNillableErrorMessage(s *string) *GenerationUpdate
 	return gu
 }
 
+// ClearErrorMessage clears the value of the "error_message" field.
+func (gu *GenerationUpdate) ClearErrorMessage() *GenerationUpdate {
+	gu.mutation.ClearErrorMessage()
+	return gu
+}
+
 // SetEmail sets the "email" field.
 func (gu *GenerationUpdate) SetEmail(s string) *GenerationUpdate {
 	gu.mutation.SetEmail(s)
@@ -123,6 +153,12 @@ func (gu *GenerationUpdate) SetNillableEmail(s *string) *GenerationUpdate {
 	if s != nil {
 		gu.SetEmail(*s)
 	}
+	return gu
+}
+
+// ClearEmail clears the value of the "email" field.
+func (gu *GenerationUpdate) ClearEmail() *GenerationUpdate {
+	gu.mutation.ClearEmail()
 	return gu
 }
 
@@ -198,8 +234,14 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.RequestID(); ok {
 		_spec.SetField(generation.FieldRequestID, field.TypeString, value)
 	}
+	if gu.mutation.RequestIDCleared() {
+		_spec.ClearField(generation.FieldRequestID, field.TypeString)
+	}
 	if value, ok := gu.mutation.Prompt(); ok {
 		_spec.SetField(generation.FieldPrompt, field.TypeString, value)
+	}
+	if gu.mutation.PromptCleared() {
+		_spec.ClearField(generation.FieldPrompt, field.TypeString)
 	}
 	if value, ok := gu.mutation.Status(); ok {
 		_spec.SetField(generation.FieldStatus, field.TypeEnum, value)
@@ -207,14 +249,26 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.VideoURL(); ok {
 		_spec.SetField(generation.FieldVideoURL, field.TypeString, value)
 	}
+	if gu.mutation.VideoURLCleared() {
+		_spec.ClearField(generation.FieldVideoURL, field.TypeString)
+	}
 	if value, ok := gu.mutation.ScriptURL(); ok {
 		_spec.SetField(generation.FieldScriptURL, field.TypeString, value)
+	}
+	if gu.mutation.ScriptURLCleared() {
+		_spec.ClearField(generation.FieldScriptURL, field.TypeString)
 	}
 	if value, ok := gu.mutation.ErrorMessage(); ok {
 		_spec.SetField(generation.FieldErrorMessage, field.TypeString, value)
 	}
+	if gu.mutation.ErrorMessageCleared() {
+		_spec.ClearField(generation.FieldErrorMessage, field.TypeString)
+	}
 	if value, ok := gu.mutation.Email(); ok {
 		_spec.SetField(generation.FieldEmail, field.TypeString, value)
+	}
+	if gu.mutation.EmailCleared() {
+		_spec.ClearField(generation.FieldEmail, field.TypeString)
 	}
 	if value, ok := gu.mutation.UpdatedAt(); ok {
 		_spec.SetField(generation.FieldUpdatedAt, field.TypeTime, value)
@@ -253,6 +307,12 @@ func (guo *GenerationUpdateOne) SetNillableRequestID(s *string) *GenerationUpdat
 	return guo
 }
 
+// ClearRequestID clears the value of the "request_id" field.
+func (guo *GenerationUpdateOne) ClearRequestID() *GenerationUpdateOne {
+	guo.mutation.ClearRequestID()
+	return guo
+}
+
 // SetPrompt sets the "prompt" field.
 func (guo *GenerationUpdateOne) SetPrompt(s string) *GenerationUpdateOne {
 	guo.mutation.SetPrompt(s)
@@ -264,6 +324,12 @@ func (guo *GenerationUpdateOne) SetNillablePrompt(s *string) *GenerationUpdateOn
 	if s != nil {
 		guo.SetPrompt(*s)
 	}
+	return guo
+}
+
+// ClearPrompt clears the value of the "prompt" field.
+func (guo *GenerationUpdateOne) ClearPrompt() *GenerationUpdateOne {
+	guo.mutation.ClearPrompt()
 	return guo
 }
 
@@ -295,6 +361,12 @@ func (guo *GenerationUpdateOne) SetNillableVideoURL(s *string) *GenerationUpdate
 	return guo
 }
 
+// ClearVideoURL clears the value of the "video_url" field.
+func (guo *GenerationUpdateOne) ClearVideoURL() *GenerationUpdateOne {
+	guo.mutation.ClearVideoURL()
+	return guo
+}
+
 // SetScriptURL sets the "script_url" field.
 func (guo *GenerationUpdateOne) SetScriptURL(s string) *GenerationUpdateOne {
 	guo.mutation.SetScriptURL(s)
@@ -306,6 +378,12 @@ func (guo *GenerationUpdateOne) SetNillableScriptURL(s *string) *GenerationUpdat
 	if s != nil {
 		guo.SetScriptURL(*s)
 	}
+	return guo
+}
+
+// ClearScriptURL clears the value of the "script_url" field.
+func (guo *GenerationUpdateOne) ClearScriptURL() *GenerationUpdateOne {
+	guo.mutation.ClearScriptURL()
 	return guo
 }
 
@@ -323,6 +401,12 @@ func (guo *GenerationUpdateOne) SetNillableErrorMessage(s *string) *GenerationUp
 	return guo
 }
 
+// ClearErrorMessage clears the value of the "error_message" field.
+func (guo *GenerationUpdateOne) ClearErrorMessage() *GenerationUpdateOne {
+	guo.mutation.ClearErrorMessage()
+	return guo
+}
+
 // SetEmail sets the "email" field.
 func (guo *GenerationUpdateOne) SetEmail(s string) *GenerationUpdateOne {
 	guo.mutation.SetEmail(s)
@@ -334,6 +418,12 @@ func (guo *GenerationUpdateOne) SetNillableEmail(s *string) *GenerationUpdateOne
 	if s != nil {
 		guo.SetEmail(*s)
 	}
+	return guo
+}
+
+// ClearEmail clears the value of the "email" field.
+func (guo *GenerationUpdateOne) ClearEmail() *GenerationUpdateOne {
+	guo.mutation.ClearEmail()
 	return guo
 }
 
@@ -439,8 +529,14 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	if value, ok := guo.mutation.RequestID(); ok {
 		_spec.SetField(generation.FieldRequestID, field.TypeString, value)
 	}
+	if guo.mutation.RequestIDCleared() {
+		_spec.ClearField(generation.FieldRequestID, field.TypeString)
+	}
 	if value, ok := guo.mutation.Prompt(); ok {
 		_spec.SetField(generation.FieldPrompt, field.TypeString, value)
+	}
+	if guo.mutation.PromptCleared() {
+		_spec.ClearField(generation.FieldPrompt, field.TypeString)
 	}
 	if value, ok := guo.mutation.Status(); ok {
 		_spec.SetField(generation.FieldStatus, field.TypeEnum, value)
@@ -448,14 +544,26 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 	if value, ok := guo.mutation.VideoURL(); ok {
 		_spec.SetField(generation.FieldVideoURL, field.TypeString, value)
 	}
+	if guo.mutation.VideoURLCleared() {
+		_spec.ClearField(generation.FieldVideoURL, field.TypeString)
+	}
 	if value, ok := guo.mutation.ScriptURL(); ok {
 		_spec.SetField(generation.FieldScriptURL, field.TypeString, value)
+	}
+	if guo.mutation.ScriptURLCleared() {
+		_spec.ClearField(generation.FieldScriptURL, field.TypeString)
 	}
 	if value, ok := guo.mutation.ErrorMessage(); ok {
 		_spec.SetField(generation.FieldErrorMessage, field.TypeString, value)
 	}
+	if guo.mutation.ErrorMessageCleared() {
+		_spec.ClearField(generation.FieldErrorMessage, field.TypeString)
+	}
 	if value, ok := guo.mutation.Email(); ok {
 		_spec.SetField(generation.FieldEmail, field.TypeString, value)
+	}
+	if guo.mutation.EmailCleared() {
+		_spec.ClearField(generation.FieldEmail, field.TypeString)
 	}
 	if value, ok := guo.mutation.UpdatedAt(); ok {
 		_spec.SetField(generation.FieldUpdatedAt, field.TypeTime, value)

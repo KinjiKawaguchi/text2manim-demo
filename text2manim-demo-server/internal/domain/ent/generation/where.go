@@ -150,6 +150,16 @@ func RequestIDHasSuffix(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldHasSuffix(FieldRequestID, v))
 }
 
+// RequestIDIsNil applies the IsNil predicate on the "request_id" field.
+func RequestIDIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldRequestID))
+}
+
+// RequestIDNotNil applies the NotNil predicate on the "request_id" field.
+func RequestIDNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldRequestID))
+}
+
 // RequestIDEqualFold applies the EqualFold predicate on the "request_id" field.
 func RequestIDEqualFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEqualFold(FieldRequestID, v))
@@ -213,6 +223,16 @@ func PromptHasPrefix(v string) predicate.Generation {
 // PromptHasSuffix applies the HasSuffix predicate on the "prompt" field.
 func PromptHasSuffix(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldHasSuffix(FieldPrompt, v))
+}
+
+// PromptIsNil applies the IsNil predicate on the "prompt" field.
+func PromptIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldPrompt))
+}
+
+// PromptNotNil applies the NotNil predicate on the "prompt" field.
+func PromptNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldPrompt))
 }
 
 // PromptEqualFold applies the EqualFold predicate on the "prompt" field.
@@ -300,6 +320,16 @@ func VideoURLHasSuffix(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldHasSuffix(FieldVideoURL, v))
 }
 
+// VideoURLIsNil applies the IsNil predicate on the "video_url" field.
+func VideoURLIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldVideoURL))
+}
+
+// VideoURLNotNil applies the NotNil predicate on the "video_url" field.
+func VideoURLNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldVideoURL))
+}
+
 // VideoURLEqualFold applies the EqualFold predicate on the "video_url" field.
 func VideoURLEqualFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEqualFold(FieldVideoURL, v))
@@ -363,6 +393,16 @@ func ScriptURLHasPrefix(v string) predicate.Generation {
 // ScriptURLHasSuffix applies the HasSuffix predicate on the "script_url" field.
 func ScriptURLHasSuffix(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldHasSuffix(FieldScriptURL, v))
+}
+
+// ScriptURLIsNil applies the IsNil predicate on the "script_url" field.
+func ScriptURLIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldScriptURL))
+}
+
+// ScriptURLNotNil applies the NotNil predicate on the "script_url" field.
+func ScriptURLNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldScriptURL))
 }
 
 // ScriptURLEqualFold applies the EqualFold predicate on the "script_url" field.
@@ -430,6 +470,16 @@ func ErrorMessageHasSuffix(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldHasSuffix(FieldErrorMessage, v))
 }
 
+// ErrorMessageIsNil applies the IsNil predicate on the "error_message" field.
+func ErrorMessageIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldErrorMessage))
+}
+
+// ErrorMessageNotNil applies the NotNil predicate on the "error_message" field.
+func ErrorMessageNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldErrorMessage))
+}
+
 // ErrorMessageEqualFold applies the EqualFold predicate on the "error_message" field.
 func ErrorMessageEqualFold(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldEqualFold(FieldErrorMessage, v))
@@ -493,6 +543,16 @@ func EmailHasPrefix(v string) predicate.Generation {
 // EmailHasSuffix applies the HasSuffix predicate on the "email" field.
 func EmailHasSuffix(v string) predicate.Generation {
 	return predicate.Generation(sql.FieldHasSuffix(FieldEmail, v))
+}
+
+// EmailIsNil applies the IsNil predicate on the "email" field.
+func EmailIsNil() predicate.Generation {
+	return predicate.Generation(sql.FieldIsNull(FieldEmail))
+}
+
+// EmailNotNil applies the NotNil predicate on the "email" field.
+func EmailNotNil() predicate.Generation {
+	return predicate.Generation(sql.FieldNotNull(FieldEmail))
 }
 
 // EmailEqualFold applies the EqualFold predicate on the "email" field.

@@ -16,7 +16,7 @@ func main() {
 	entClient := infrastructure.NewEntClient(cfg, log)
 	repo := repository.NewGenerationRepository(entClient, log)
 
-	text2ManimClient, err := infrastructure.NewText2ManimClient(cfg.Text2manimApiEndpoint, cfg.Text2manimApiKey)
+	text2ManimClient, err := infrastructure.NewText2ManimClient(cfg.Text2manimApiEndpoint, cfg.Text2manimApiKey, cfg.Environment)
 	if err != nil {
 		log.Error("Failed to create Text2Manim client", "error", err)
 		return
@@ -27,8 +27,8 @@ func main() {
 
 	router := api.SetupRouter(cfg, handler)
 
-	log.Info("Starting server on :8080")
-	if err := router.Run(":8080"); err != nil {
+	log.Info("Starting server on " + cfg.ServerPort)
+	if err := router.Run(":" + cfg.ServerPort); err != nil {
 		log.Error("Failed to start server", "error", err)
 	}
 }
