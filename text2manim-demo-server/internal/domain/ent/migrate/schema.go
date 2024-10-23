@@ -13,7 +13,7 @@ var (
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "request_id", Type: field.TypeString, Unique: true},
 		{Name: "prompt", Type: field.TypeString},
-		{Name: "status", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"unspecified", "pending", "processing", "completed", "failed"}, Default: "unspecified"},
 		{Name: "video_url", Type: field.TypeString},
 		{Name: "script_url", Type: field.TypeString},
 		{Name: "error_message", Type: field.TypeString},

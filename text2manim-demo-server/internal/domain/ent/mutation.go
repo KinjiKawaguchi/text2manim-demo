@@ -36,7 +36,7 @@ type GenerationMutation struct {
 	id            *uuid.UUID
 	request_id    *string
 	prompt        *string
-	status        *string
+	status        *generation.Status
 	video_url     *string
 	script_url    *string
 	error_message *string
@@ -226,12 +226,12 @@ func (m *GenerationMutation) ResetPrompt() {
 }
 
 // SetStatus sets the "status" field.
-func (m *GenerationMutation) SetStatus(s string) {
-	m.status = &s
+func (m *GenerationMutation) SetStatus(ge generation.Status) {
+	m.status = &ge
 }
 
 // Status returns the value of the "status" field in the mutation.
-func (m *GenerationMutation) Status() (r string, exists bool) {
+func (m *GenerationMutation) Status() (r generation.Status, exists bool) {
 	v := m.status
 	if v == nil {
 		return
@@ -242,7 +242,7 @@ func (m *GenerationMutation) Status() (r string, exists bool) {
 // OldStatus returns the old "status" field's value of the Generation entity.
 // If the Generation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GenerationMutation) OldStatus(ctx context.Context) (v string, err error) {
+func (m *GenerationMutation) OldStatus(ctx context.Context) (v generation.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
 	}
@@ -616,7 +616,7 @@ func (m *GenerationMutation) SetField(name string, value ent.Value) error {
 		m.SetPrompt(v)
 		return nil
 	case generation.FieldStatus:
-		v, ok := value.(string)
+		v, ok := value.(generation.Status)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

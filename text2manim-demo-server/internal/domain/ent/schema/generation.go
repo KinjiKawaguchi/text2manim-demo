@@ -17,7 +17,15 @@ func (Generation) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Unique(),
 		field.String("request_id").Unique(),
 		field.String("prompt"),
-		field.String("status"),
+		field.Enum("status").
+			Values(
+				"unspecified",
+				"pending",
+				"processing",
+				"completed",
+				"failed",
+			).
+			Default("unspecified"),
 		field.String("video_url"),
 		field.String("script_url"),
 		field.String("error_message"),

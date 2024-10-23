@@ -34,8 +34,16 @@ func (gc *GenerationCreate) SetPrompt(s string) *GenerationCreate {
 }
 
 // SetStatus sets the "status" field.
-func (gc *GenerationCreate) SetStatus(s string) *GenerationCreate {
-	gc.mutation.SetStatus(s)
+func (gc *GenerationCreate) SetStatus(ge generation.Status) *GenerationCreate {
+	gc.mutation.SetStatus(ge)
+	return gc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableStatus(ge *generation.Status) *GenerationCreate {
+	if ge != nil {
+		gc.SetStatus(*ge)
+	}
 	return gc
 }
 
@@ -140,6 +148,10 @@ func (gc *GenerationCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (gc *GenerationCreate) defaults() {
+	if _, ok := gc.mutation.Status(); !ok {
+		v := generation.DefaultStatus
+		gc.mutation.SetStatus(v)
+	}
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		v := generation.DefaultCreatedAt()
 		gc.mutation.SetCreatedAt(v)
@@ -164,6 +176,11 @@ func (gc *GenerationCreate) check() error {
 	}
 	if _, ok := gc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Generation.status"`)}
+	}
+	if v, ok := gc.mutation.Status(); ok {
+		if err := generation.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Generation.status": %w`, err)}
+		}
 	}
 	if _, ok := gc.mutation.VideoURL(); !ok {
 		return &ValidationError{Name: "video_url", err: errors.New(`ent: missing required field "Generation.video_url"`)}
@@ -227,7 +244,7 @@ func (gc *GenerationCreate) createSpec() (*Generation, *sqlgraph.CreateSpec) {
 		_node.Prompt = value
 	}
 	if value, ok := gc.mutation.Status(); ok {
-		_spec.SetField(generation.FieldStatus, field.TypeString, value)
+		_spec.SetField(generation.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
 	if value, ok := gc.mutation.VideoURL(); ok {
