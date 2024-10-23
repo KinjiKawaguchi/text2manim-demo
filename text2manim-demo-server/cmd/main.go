@@ -13,8 +13,8 @@ func main() {
 	log := logger.NewLogger()
 	cfg := config.Load(log)
 
-	db := infrastructure.NewDatabase(cfg, log)
-	repo := repository.NewGenerationRepository(db, log)
+	entClient := infrastructure.NewEntClient(cfg, log)
+	repo := repository.NewGenerationRepository(entClient, log)
 
 	text2ManimClient, err := infrastructure.NewText2ManimClient(cfg.Text2manimApiEndpoint, cfg.Text2manimApiKey)
 	if err != nil {
