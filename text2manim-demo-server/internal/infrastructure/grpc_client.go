@@ -6,16 +6,26 @@ import (
 	pb "github.com/KinjiKawaguchi/text2manim/api/pkg/pb/text2manim/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
-func NewText2ManimClient(endpoint, apiKey string) (pb.Text2ManimServiceClient, error) {
-	creds := credentials.NewClientTLSFromCert(nil, "")
-	conn, err := grpc.NewClient(
-		endpoint,
-		grpc.WithTransportCredentials(creds),
-		grpc.WithUnaryInterceptor(apiKeyInterceptor(apiKey)),
-	)
+func NewText2ManimClient(endpoint, apiKey, environment string) (pb.Text2ManimServiceClient, error) {
+	var conn *grpc.ClientConn
+	var err error
+	if environment == "development" {
+		conn, err = grpc.NewClient(endpoint,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(apiKeyInterceptor(apiKey)),
+		)
+	} else {
+		creds := credentials.NewClientTLSFromCert(nil, "")
+		conn, err = grpc.NewClient(
+			endpoint,
+			grpc.WithTransportCredentials(creds),
+			grpc.WithUnaryInterceptor(apiKeyInterceptor(apiKey)),
+		)
+	}
 	if err != nil {
 		return nil, err
 	}

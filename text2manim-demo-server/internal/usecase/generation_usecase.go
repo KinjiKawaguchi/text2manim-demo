@@ -67,7 +67,7 @@ func (uc *videoGenerationUseCase) CreateGeneration(ctx context.Context, email, p
 
 	generation, err := uc.repo.Create(ctx, generation)
 	if err != nil {
-		uc.logger.Error("Failed to create generation record", "error", err, "id", generation.ID)
+		uc.logger.Error("Failed to create generation record", "error", err)
 		return nil, status.Errorf(codes.Internal, "failed to create generation record: %v", err)
 	}
 

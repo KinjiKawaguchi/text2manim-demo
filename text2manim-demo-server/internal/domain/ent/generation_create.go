@@ -27,9 +27,25 @@ func (gc *GenerationCreate) SetRequestID(s string) *GenerationCreate {
 	return gc
 }
 
+// SetNillableRequestID sets the "request_id" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableRequestID(s *string) *GenerationCreate {
+	if s != nil {
+		gc.SetRequestID(*s)
+	}
+	return gc
+}
+
 // SetPrompt sets the "prompt" field.
 func (gc *GenerationCreate) SetPrompt(s string) *GenerationCreate {
 	gc.mutation.SetPrompt(s)
+	return gc
+}
+
+// SetNillablePrompt sets the "prompt" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillablePrompt(s *string) *GenerationCreate {
+	if s != nil {
+		gc.SetPrompt(*s)
+	}
 	return gc
 }
 
@@ -53,9 +69,25 @@ func (gc *GenerationCreate) SetVideoURL(s string) *GenerationCreate {
 	return gc
 }
 
+// SetNillableVideoURL sets the "video_url" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableVideoURL(s *string) *GenerationCreate {
+	if s != nil {
+		gc.SetVideoURL(*s)
+	}
+	return gc
+}
+
 // SetScriptURL sets the "script_url" field.
 func (gc *GenerationCreate) SetScriptURL(s string) *GenerationCreate {
 	gc.mutation.SetScriptURL(s)
+	return gc
+}
+
+// SetNillableScriptURL sets the "script_url" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableScriptURL(s *string) *GenerationCreate {
+	if s != nil {
+		gc.SetScriptURL(*s)
+	}
 	return gc
 }
 
@@ -65,9 +97,25 @@ func (gc *GenerationCreate) SetErrorMessage(s string) *GenerationCreate {
 	return gc
 }
 
+// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableErrorMessage(s *string) *GenerationCreate {
+	if s != nil {
+		gc.SetErrorMessage(*s)
+	}
+	return gc
+}
+
 // SetEmail sets the "email" field.
 func (gc *GenerationCreate) SetEmail(s string) *GenerationCreate {
 	gc.mutation.SetEmail(s)
+	return gc
+}
+
+// SetNillableEmail sets the "email" field if the given value is not nil.
+func (gc *GenerationCreate) SetNillableEmail(s *string) *GenerationCreate {
+	if s != nil {
+		gc.SetEmail(*s)
+	}
 	return gc
 }
 
@@ -168,12 +216,6 @@ func (gc *GenerationCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (gc *GenerationCreate) check() error {
-	if _, ok := gc.mutation.RequestID(); !ok {
-		return &ValidationError{Name: "request_id", err: errors.New(`ent: missing required field "Generation.request_id"`)}
-	}
-	if _, ok := gc.mutation.Prompt(); !ok {
-		return &ValidationError{Name: "prompt", err: errors.New(`ent: missing required field "Generation.prompt"`)}
-	}
 	if _, ok := gc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Generation.status"`)}
 	}
@@ -181,18 +223,6 @@ func (gc *GenerationCreate) check() error {
 		if err := generation.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Generation.status": %w`, err)}
 		}
-	}
-	if _, ok := gc.mutation.VideoURL(); !ok {
-		return &ValidationError{Name: "video_url", err: errors.New(`ent: missing required field "Generation.video_url"`)}
-	}
-	if _, ok := gc.mutation.ScriptURL(); !ok {
-		return &ValidationError{Name: "script_url", err: errors.New(`ent: missing required field "Generation.script_url"`)}
-	}
-	if _, ok := gc.mutation.ErrorMessage(); !ok {
-		return &ValidationError{Name: "error_message", err: errors.New(`ent: missing required field "Generation.error_message"`)}
-	}
-	if _, ok := gc.mutation.Email(); !ok {
-		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "Generation.email"`)}
 	}
 	if _, ok := gc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Generation.created_at"`)}

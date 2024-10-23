@@ -184,9 +184,22 @@ func (m *GenerationMutation) OldRequestID(ctx context.Context) (v string, err er
 	return oldValue.RequestID, nil
 }
 
+// ClearRequestID clears the value of the "request_id" field.
+func (m *GenerationMutation) ClearRequestID() {
+	m.request_id = nil
+	m.clearedFields[generation.FieldRequestID] = struct{}{}
+}
+
+// RequestIDCleared returns if the "request_id" field was cleared in this mutation.
+func (m *GenerationMutation) RequestIDCleared() bool {
+	_, ok := m.clearedFields[generation.FieldRequestID]
+	return ok
+}
+
 // ResetRequestID resets all changes to the "request_id" field.
 func (m *GenerationMutation) ResetRequestID() {
 	m.request_id = nil
+	delete(m.clearedFields, generation.FieldRequestID)
 }
 
 // SetPrompt sets the "prompt" field.
@@ -220,9 +233,22 @@ func (m *GenerationMutation) OldPrompt(ctx context.Context) (v string, err error
 	return oldValue.Prompt, nil
 }
 
+// ClearPrompt clears the value of the "prompt" field.
+func (m *GenerationMutation) ClearPrompt() {
+	m.prompt = nil
+	m.clearedFields[generation.FieldPrompt] = struct{}{}
+}
+
+// PromptCleared returns if the "prompt" field was cleared in this mutation.
+func (m *GenerationMutation) PromptCleared() bool {
+	_, ok := m.clearedFields[generation.FieldPrompt]
+	return ok
+}
+
 // ResetPrompt resets all changes to the "prompt" field.
 func (m *GenerationMutation) ResetPrompt() {
 	m.prompt = nil
+	delete(m.clearedFields, generation.FieldPrompt)
 }
 
 // SetStatus sets the "status" field.
@@ -292,9 +318,22 @@ func (m *GenerationMutation) OldVideoURL(ctx context.Context) (v string, err err
 	return oldValue.VideoURL, nil
 }
 
+// ClearVideoURL clears the value of the "video_url" field.
+func (m *GenerationMutation) ClearVideoURL() {
+	m.video_url = nil
+	m.clearedFields[generation.FieldVideoURL] = struct{}{}
+}
+
+// VideoURLCleared returns if the "video_url" field was cleared in this mutation.
+func (m *GenerationMutation) VideoURLCleared() bool {
+	_, ok := m.clearedFields[generation.FieldVideoURL]
+	return ok
+}
+
 // ResetVideoURL resets all changes to the "video_url" field.
 func (m *GenerationMutation) ResetVideoURL() {
 	m.video_url = nil
+	delete(m.clearedFields, generation.FieldVideoURL)
 }
 
 // SetScriptURL sets the "script_url" field.
@@ -328,9 +367,22 @@ func (m *GenerationMutation) OldScriptURL(ctx context.Context) (v string, err er
 	return oldValue.ScriptURL, nil
 }
 
+// ClearScriptURL clears the value of the "script_url" field.
+func (m *GenerationMutation) ClearScriptURL() {
+	m.script_url = nil
+	m.clearedFields[generation.FieldScriptURL] = struct{}{}
+}
+
+// ScriptURLCleared returns if the "script_url" field was cleared in this mutation.
+func (m *GenerationMutation) ScriptURLCleared() bool {
+	_, ok := m.clearedFields[generation.FieldScriptURL]
+	return ok
+}
+
 // ResetScriptURL resets all changes to the "script_url" field.
 func (m *GenerationMutation) ResetScriptURL() {
 	m.script_url = nil
+	delete(m.clearedFields, generation.FieldScriptURL)
 }
 
 // SetErrorMessage sets the "error_message" field.
@@ -364,9 +416,22 @@ func (m *GenerationMutation) OldErrorMessage(ctx context.Context) (v string, err
 	return oldValue.ErrorMessage, nil
 }
 
+// ClearErrorMessage clears the value of the "error_message" field.
+func (m *GenerationMutation) ClearErrorMessage() {
+	m.error_message = nil
+	m.clearedFields[generation.FieldErrorMessage] = struct{}{}
+}
+
+// ErrorMessageCleared returns if the "error_message" field was cleared in this mutation.
+func (m *GenerationMutation) ErrorMessageCleared() bool {
+	_, ok := m.clearedFields[generation.FieldErrorMessage]
+	return ok
+}
+
 // ResetErrorMessage resets all changes to the "error_message" field.
 func (m *GenerationMutation) ResetErrorMessage() {
 	m.error_message = nil
+	delete(m.clearedFields, generation.FieldErrorMessage)
 }
 
 // SetEmail sets the "email" field.
@@ -400,9 +465,22 @@ func (m *GenerationMutation) OldEmail(ctx context.Context) (v string, err error)
 	return oldValue.Email, nil
 }
 
+// ClearEmail clears the value of the "email" field.
+func (m *GenerationMutation) ClearEmail() {
+	m.email = nil
+	m.clearedFields[generation.FieldEmail] = struct{}{}
+}
+
+// EmailCleared returns if the "email" field was cleared in this mutation.
+func (m *GenerationMutation) EmailCleared() bool {
+	_, ok := m.clearedFields[generation.FieldEmail]
+	return ok
+}
+
 // ResetEmail resets all changes to the "email" field.
 func (m *GenerationMutation) ResetEmail() {
 	m.email = nil
+	delete(m.clearedFields, generation.FieldEmail)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -693,7 +771,26 @@ func (m *GenerationMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *GenerationMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(generation.FieldRequestID) {
+		fields = append(fields, generation.FieldRequestID)
+	}
+	if m.FieldCleared(generation.FieldPrompt) {
+		fields = append(fields, generation.FieldPrompt)
+	}
+	if m.FieldCleared(generation.FieldVideoURL) {
+		fields = append(fields, generation.FieldVideoURL)
+	}
+	if m.FieldCleared(generation.FieldScriptURL) {
+		fields = append(fields, generation.FieldScriptURL)
+	}
+	if m.FieldCleared(generation.FieldErrorMessage) {
+		fields = append(fields, generation.FieldErrorMessage)
+	}
+	if m.FieldCleared(generation.FieldEmail) {
+		fields = append(fields, generation.FieldEmail)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -706,6 +803,26 @@ func (m *GenerationMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *GenerationMutation) ClearField(name string) error {
+	switch name {
+	case generation.FieldRequestID:
+		m.ClearRequestID()
+		return nil
+	case generation.FieldPrompt:
+		m.ClearPrompt()
+		return nil
+	case generation.FieldVideoURL:
+		m.ClearVideoURL()
+		return nil
+	case generation.FieldScriptURL:
+		m.ClearScriptURL()
+		return nil
+	case generation.FieldErrorMessage:
+		m.ClearErrorMessage()
+		return nil
+	case generation.FieldEmail:
+		m.ClearEmail()
+		return nil
+	}
 	return fmt.Errorf("unknown Generation nullable field %s", name)
 }
 
