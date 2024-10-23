@@ -23,7 +23,7 @@ type Generation struct {
 	// Prompt holds the value of the "prompt" field.
 	Prompt string `json:"prompt,omitempty"`
 	// Status holds the value of the "status" field.
-	Status string `json:"status,omitempty"`
+	Status generation.Status `json:"status,omitempty"`
 	// VideoURL holds the value of the "video_url" field.
 	VideoURL string `json:"video_url,omitempty"`
 	// ScriptURL holds the value of the "script_url" field.
@@ -87,7 +87,7 @@ func (ge *Generation) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
-				ge.Status = value.String
+				ge.Status = generation.Status(value.String)
 			}
 		case generation.FieldVideoURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -168,7 +168,7 @@ func (ge *Generation) String() string {
 	builder.WriteString(ge.Prompt)
 	builder.WriteString(", ")
 	builder.WriteString("status=")
-	builder.WriteString(ge.Status)
+	builder.WriteString(fmt.Sprintf("%v", ge.Status))
 	builder.WriteString(", ")
 	builder.WriteString("video_url=")
 	builder.WriteString(ge.VideoURL)

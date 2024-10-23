@@ -15,6 +15,8 @@ import (
 	"text2manim-demo-server/internal/repository"
 	"text2manim-demo-server/pkg/ratelimiter"
 
+	entGeneration "text2manim-demo-server/internal/domain/ent/generation"
+
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 
 	pb "github.com/KinjiKawaguchi/text2manim/api/pkg/pb/text2manim/v1"
@@ -72,7 +74,7 @@ func (uc *videoGenerationUseCase) CreateGeneration(ctx context.Context, email, p
 	resp, err := uc.text2ManimClient.CreateGeneration(ctx, &pb.CreateGenerationRequest{Prompt: prompt})
 	if err != nil {
 		uc.logger.Error("Failed to initiate video generation", "error", err, "id", generation.ID)
-		generation.Status = pb.GenerationStatus_STATUS_FAILED.String()
+		generation.Status = mapper.ProtoStatusToEntStatus(pb.GenerationStatus_STATUS_FAILED)
 		if updateErr := uc.repo.Update(ctx, generation.ID, generation); updateErr != nil {
 			uc.logger.Error("Failed to update generation status", "error", updateErr, "id", generation.ID)
 		}
@@ -97,8 +99,18 @@ func (uc *videoGenerationUseCase) GetGenerationStatus(ctx context.Context, reque
 		return nil, status.Errorf(codes.Internal, "failed to get generation status: %v", err)
 	}
 
-	if generation.Status == pb.GenerationStatus_STATUS_UNSPECIFIED.String() || generation.Status == pb.GenerationStatus_STATUS_COMPLETED.String() || generation.Status == pb.GenerationStatus_STATUS_FAILED.String() {
-		return generation, nil
+	// 終了条件のステータスを定義
+	finalStatuses := []entGeneration.Status{
+		entGeneration.StatusUnspecified,
+		entGeneration.StatusCompleted,
+		entGeneration.StatusFailed,
+	}
+
+	// 現在のステータスが終了条件に該当するかチェック
+	for _, status := range finalStatuses {
+		if generation.Status == status {
+			return generation, nil
+		}
 	}
 	resp, err := uc.text2ManimClient.GetGenerationStatus(ctx, &pb.GetGenerationStatusRequest{RequestId: requestID})
 	if err != nil {

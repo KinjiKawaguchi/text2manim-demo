@@ -57,15 +57,15 @@ func (gu *GenerationUpdate) SetNillablePrompt(s *string) *GenerationUpdate {
 }
 
 // SetStatus sets the "status" field.
-func (gu *GenerationUpdate) SetStatus(s string) *GenerationUpdate {
-	gu.mutation.SetStatus(s)
+func (gu *GenerationUpdate) SetStatus(ge generation.Status) *GenerationUpdate {
+	gu.mutation.SetStatus(ge)
 	return gu
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (gu *GenerationUpdate) SetNillableStatus(s *string) *GenerationUpdate {
-	if s != nil {
-		gu.SetStatus(*s)
+func (gu *GenerationUpdate) SetNillableStatus(ge *generation.Status) *GenerationUpdate {
+	if ge != nil {
+		gu.SetStatus(*ge)
 	}
 	return gu
 }
@@ -173,7 +173,20 @@ func (gu *GenerationUpdate) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (gu *GenerationUpdate) check() error {
+	if v, ok := gu.mutation.Status(); ok {
+		if err := generation.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Generation.status": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := gu.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(generation.Table, generation.Columns, sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID))
 	if ps := gu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -189,7 +202,7 @@ func (gu *GenerationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(generation.FieldPrompt, field.TypeString, value)
 	}
 	if value, ok := gu.mutation.Status(); ok {
-		_spec.SetField(generation.FieldStatus, field.TypeString, value)
+		_spec.SetField(generation.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := gu.mutation.VideoURL(); ok {
 		_spec.SetField(generation.FieldVideoURL, field.TypeString, value)
@@ -255,15 +268,15 @@ func (guo *GenerationUpdateOne) SetNillablePrompt(s *string) *GenerationUpdateOn
 }
 
 // SetStatus sets the "status" field.
-func (guo *GenerationUpdateOne) SetStatus(s string) *GenerationUpdateOne {
-	guo.mutation.SetStatus(s)
+func (guo *GenerationUpdateOne) SetStatus(ge generation.Status) *GenerationUpdateOne {
+	guo.mutation.SetStatus(ge)
 	return guo
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (guo *GenerationUpdateOne) SetNillableStatus(s *string) *GenerationUpdateOne {
-	if s != nil {
-		guo.SetStatus(*s)
+func (guo *GenerationUpdateOne) SetNillableStatus(ge *generation.Status) *GenerationUpdateOne {
+	if ge != nil {
+		guo.SetStatus(*ge)
 	}
 	return guo
 }
@@ -384,7 +397,20 @@ func (guo *GenerationUpdateOne) defaults() {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (guo *GenerationUpdateOne) check() error {
+	if v, ok := guo.mutation.Status(); ok {
+		if err := generation.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Generation.status": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation, err error) {
+	if err := guo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(generation.Table, generation.Columns, sqlgraph.NewFieldSpec(generation.FieldID, field.TypeUUID))
 	id, ok := guo.mutation.ID()
 	if !ok {
@@ -417,7 +443,7 @@ func (guo *GenerationUpdateOne) sqlSave(ctx context.Context) (_node *Generation,
 		_spec.SetField(generation.FieldPrompt, field.TypeString, value)
 	}
 	if value, ok := guo.mutation.Status(); ok {
-		_spec.SetField(generation.FieldStatus, field.TypeString, value)
+		_spec.SetField(generation.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := guo.mutation.VideoURL(); ok {
 		_spec.SetField(generation.FieldVideoURL, field.TypeString, value)
