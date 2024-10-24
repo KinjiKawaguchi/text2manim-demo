@@ -63,6 +63,7 @@ func (uc *videoGenerationUseCase) CreateGeneration(ctx context.Context, email, p
 	generation := &ent.Generation{
 		Email:  email,
 		Prompt: prompt,
+		Status: entGeneration.StatusPending,
 	}
 
 	generation, err := uc.repo.Create(ctx, generation)
