@@ -37,7 +37,7 @@ func (h *Handler) CreateGeneration(c *gin.Context) {
 	}
 
 	h.log.Info("Generation created successfully", "requestID", requestID, "email", request.Email)
-	c.JSON(http.StatusOK, gin.H{"request_id": requestID})
+	c.JSON(http.StatusOK, requestID)
 }
 
 func (h *Handler) GetGeneration(c *gin.Context) {
@@ -51,7 +51,7 @@ func (h *Handler) GetGeneration(c *gin.Context) {
 	}
 
 	h.log.Info("Generation retrieved", "requestID", requestID, "generation", generation)
-	c.JSON(http.StatusOK, gin.H{"generation_status": generation})
+	c.JSON(http.StatusOK, generation)
 }
 
 func (h *Handler) HealthCheck(c *gin.Context) {
