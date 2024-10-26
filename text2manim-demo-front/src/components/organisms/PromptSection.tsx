@@ -1,5 +1,5 @@
 import { Box, Heading, Text, VStack } from "@chakra-ui/react";
-import { PromptForm } from "../molecules/PromptForm";
+import { PromptForm } from "@/components/molecules/PromptForm";
 
 interface Props {
   onSubmit: (prompt: string) => void;

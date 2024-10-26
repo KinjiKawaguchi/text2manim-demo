@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { VStack } from "@chakra-ui/react";
-import { Input } from "../atoms/Input";
-import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/atoms/Textarea";
+import { Button } from "@/components/atoms/chakra/button";
 
 interface Props {
   onSubmit: (prompt: string) => void;
@@ -26,7 +26,7 @@ export function PromptForm({ onSubmit }: Props) {
   return (
     <form onSubmit={handleSubmit} style={{ width: "100%" }}>
       <VStack padding={4} align="stretch">
-        <Input
+        <Textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           disabled={isLoading}

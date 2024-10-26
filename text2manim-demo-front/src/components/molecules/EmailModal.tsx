@@ -1,15 +1,15 @@
 import { Input, VStack } from "@chakra-ui/react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/atoms/chakra/button";
 import {
   DialogBody,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogRoot,
-} from "@/components/ui/dialog";
+} from "@/components/atoms/chakra/dialog";
 import { Fieldset } from "@chakra-ui/react";
-import { Field } from "@/components/ui/field";
+import { Field } from "@/components/atoms/chakra/field";
 
 interface Props {
   isOpen: boolean;
