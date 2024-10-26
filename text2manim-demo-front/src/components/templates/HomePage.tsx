@@ -5,7 +5,7 @@ import { PromptSection } from "@/components/organisms/PromptSection";
 import { RecentVideosCarousel } from "@/components/organisms/RecentVideosCarousel";
 import { EmailModal } from "@/components/molecules/EmailModal";
 import { toaster } from "@/components/atoms/chakra/toaster";
-
+import { SettingsDrawer } from "@/components/organisms/SettingDrawer";
 export function HomePage() {
   const router = useRouter();
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
@@ -19,23 +19,7 @@ export function HomePage() {
       setIsEmailModalOpen(true);
       return;
     }
-    setIsLoading(true);
-    try {
-      await submitGeneration(prompt, storedEmail);
-      toaster.create({
-        title: "動画生成リクエストを受け付けました",
-        description: "生成まで1分ほどかかります",
-        type: "success",
-      });
-      localStorage.removeItem("prompt");
-    } catch (error) {
-      setIsLoading(false); // NOTE: 失敗した時だけローディングか解除, 成功したらそのまま遷移するから
-      toaster.create({
-        title: "動画生成リクエストに失敗しました",
-        description: "時間をおいてから再度お試しください",
-        type: "error",
-      });
-    }
+    await submitGeneration(prompt, storedEmail);
   };
 
   const handleEmailSubmit = async (email: string) => {
@@ -87,6 +71,7 @@ export function HomePage() {
         onClose={() => setIsEmailModalOpen(false)}
         onSubmit={handleEmailSubmit}
       />
+      <SettingsDrawer />
     </Container>
   );
 }
