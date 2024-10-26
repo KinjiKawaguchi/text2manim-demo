@@ -9,7 +9,7 @@ export default function GenerationStatusPage() {
   const requestId = params.request_id as string;
 
   return (
-    <Box minH="100vh" bg="gray.50">
+    <Box minH="100vh" bg="gray.900">
       <GenerationPage requestId={requestId} />
     </Box>
   );
