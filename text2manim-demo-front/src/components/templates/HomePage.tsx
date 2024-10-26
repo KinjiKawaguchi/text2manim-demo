@@ -13,6 +13,15 @@ export function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePromptSubmit = async (prompt: string) => {
+    if (!prompt.trim()) {
+      toaster.create({
+        title: "エラー",
+        description: "プロンプトを入力してください",
+        type: "error",
+      });
+      return;
+    }
+
     const storedEmail = localStorage.getItem("userEmail");
     if (!storedEmail) {
       setCurrentPrompt(prompt);
@@ -39,10 +48,18 @@ export function HomePage() {
           body: JSON.stringify({ prompt, email }),
         },
       );
+
+      // エラーレスポンスの詳細なハンドリング
       if (!response.ok) {
-        throw new Error("Generation request failed");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `エラー: ${response.status}`);
       }
+
       const data = await response.json();
+      if (!data.request_id) {
+        throw new Error("リクエストIDが見つかりません");
+      }
+
       router.push(`/generations/${data.request_id}`);
       toaster.create({
         title: "動画生成リクエストを受け付けました",
@@ -50,11 +67,14 @@ export function HomePage() {
         type: "success",
       });
       localStorage.removeItem("prompt");
-    } catch {
+    } catch (error) {
       setIsLoading(false); // NOTE: 失敗した時だけローディングか解除, 成功したらそのまま遷移するから
       toaster.create({
         title: "動画生成リクエストに失敗しました",
-        description: "時間をおいてから再度お試しください",
+        description:
+          error instanceof Error
+            ? error.message
+            : "時間をおいてから再度お試しください",
         type: "error",
       });
     }
