@@ -45,19 +45,35 @@ export function HomePage() {
   };
 
   const submitGeneration = async (prompt: string, email: string) => {
-    const response = await fetch(
-      "https://api.text2manim-demo.kawakin.tech/v1/generations",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, email }),
-      },
-    );
-    if (!response.ok) {
-      throw new Error("Generation request failed");
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        "https://api.text2manim-demo.kawakin.tech/v1/generations",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt, email }),
+        },
+      );
+      if (!response.ok) {
+        throw new Error("Generation request failed");
+      }
+      const data = await response.json();
+      router.push(`/generations/${data.request_id}`);
+      toaster.create({
+        title: "動画生成リクエストを受け付けました",
+        description: "生成まで1分ほどかかります",
+        type: "success",
+      });
+      localStorage.removeItem("prompt");
+    } catch {
+      setIsLoading(false); // NOTE: 失敗した時だけローディングか解除, 成功したらそのまま遷移するから
+      toaster.create({
+        title: "動画生成リクエストに失敗しました",
+        description: "時間をおいてから再度お試しください",
+        type: "error",
+      });
     }
-    const data = await response.json();
-    router.push(`/generations/${data.request_id}`);
   };
 
   return (
