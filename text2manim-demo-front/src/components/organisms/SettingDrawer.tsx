@@ -1,13 +1,4 @@
-// src/components/molecules/SettingsDrawer.tsx
-import { IoSettings } from "react-icons/io5";
-import {
-  Box,
-  type DrawerOpenChangeDetails,
-  Input,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { Button } from "@/components/atoms/chakra/button";
 import {
   DrawerActionTrigger,
   DrawerBackdrop,
@@ -20,7 +11,16 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/atoms/chakra/drawer";
-import { Button } from "@/components/atoms/chakra/button";
+import {
+  Box,
+  type DrawerOpenChangeDetails,
+  Input,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
+import { useEffect, useState } from "react";
+// src/components/molecules/SettingsDrawer.tsx
+import { IoSettings } from "react-icons/io5";
 
 interface SettingsDrawerProps {
   position?: {

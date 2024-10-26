@@ -1,6 +1,6 @@
-import { Inter } from "next/font/google";
 import { Provider } from "@/components/atoms/chakra/provider";
 import { Toaster } from "@/components/atoms/chakra/toaster";
+import { Inter } from "next/font/google";
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",

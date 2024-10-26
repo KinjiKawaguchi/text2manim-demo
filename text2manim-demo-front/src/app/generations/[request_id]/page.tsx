@@ -1,8 +1,8 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { Box } from "@chakra-ui/react";
 import { GenerationPage } from "@/components/templates/GenerationPage";
+import { Box } from "@chakra-ui/react";
+import { useParams } from "next/navigation";
 
 export default function GenerationStatusPage() {
   const params = useParams();

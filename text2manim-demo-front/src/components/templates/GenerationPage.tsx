@@ -1,6 +1,6 @@
-import { Container } from "@chakra-ui/react";
 import { GenerationStatus } from "@/components/organisms/GenerationStatus";
 import { useGenerationStatus } from "@/hooks/useGenerationStatus";
+import { Container } from "@chakra-ui/react";
 
 interface Props {
   requestId: string;

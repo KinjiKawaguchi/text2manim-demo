@@ -1,5 +1,5 @@
-import { Box, Heading, Text, VStack } from "@chakra-ui/react";
 import { PromptForm } from "@/components/molecules/PromptForm";
+import { Box, Heading, Text, VStack } from "@chakra-ui/react";
 
 interface Props {
   isLoading: boolean;

@@ -1,7 +1,7 @@
 "use client";
 
-import { Box } from "@chakra-ui/react";
 import { HomePage } from "@/components/templates/HomePage";
+import { Box } from "@chakra-ui/react";
 
 export default function Home() {
   return (

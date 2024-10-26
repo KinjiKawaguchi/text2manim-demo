@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Container, VStack } from "@chakra-ui/react";
+import { toaster } from "@/components/atoms/chakra/toaster";
+import { EmailModal } from "@/components/molecules/EmailModal";
 import { PromptSection } from "@/components/organisms/PromptSection";
 import { RecentVideosCarousel } from "@/components/organisms/RecentVideosCarousel";
-import { EmailModal } from "@/components/molecules/EmailModal";
-import { toaster } from "@/components/atoms/chakra/toaster";
 import { SettingsDrawer } from "@/components/organisms/SettingDrawer";
+import { Container, VStack } from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 export function HomePage() {
   const router = useRouter();
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);

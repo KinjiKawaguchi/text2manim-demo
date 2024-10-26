@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { Box, VStack, Heading, Text } from "@chakra-ui/react";
-import { ProgressBar, ProgressRoot } from "@/components/atoms/chakra/progress";
-import type { GenerationResponse } from "@/types";
 import { Spinner } from "@/components/atoms/Spinner";
+import { ProgressBar, ProgressRoot } from "@/components/atoms/chakra/progress";
 import { VideoPlayer } from "@/components/molecules/VideoPlayer";
+import type { GenerationResponse } from "@/types";
+import { Box, Heading, Text, VStack } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 
 interface Props {
   generation: GenerationResponse | null;

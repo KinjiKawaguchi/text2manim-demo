@@ -1,4 +1,4 @@
-import { Spinner as ChakraSpinner, Center } from "@chakra-ui/react";
+import { Center, Spinner as ChakraSpinner } from "@chakra-ui/react";
 
 export function Spinner() {
   return (

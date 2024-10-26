@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
 import type { GenerationResponse } from "@/types/index";
+import { useEffect, useState } from "react";
 
 export function useGenerationStatus(requestId: string) {
   const [generation, setGeneration] = useState<GenerationResponse | null>(null);

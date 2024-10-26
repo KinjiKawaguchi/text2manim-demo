@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
+import type { RecentVideo } from "@/types";
 import {
   Box,
-  Heading,
   HStack,
+  Heading,
+  IconButton,
   Text,
   VStack,
-  IconButton,
 } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
-import type { RecentVideo } from "@/types";
 
 // モックデータ
 const MOCK_VIDEOS: RecentVideo[] = [

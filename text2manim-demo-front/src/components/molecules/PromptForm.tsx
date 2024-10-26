@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { VStack } from "@chakra-ui/react";
 import { Textarea } from "@/components/atoms/Textarea";
 import { Button } from "@/components/atoms/chakra/button";
+import { VStack } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 
 interface Props {
   isLoading: boolean;
