@@ -10,7 +10,7 @@ export interface GenerationResponse {
 }
 
 export interface RecentVideo {
-  id: string;
+  request_id: string;
   prompt: string;
   video_url: string;
   created_at: string;
