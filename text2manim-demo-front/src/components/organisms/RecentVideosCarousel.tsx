@@ -44,60 +44,73 @@ export function RecentVideosCarousel() {
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     setCurrentIndex((prev) => (prev - 1 + videos.length) % videos.length);
-  };
+  }, [videos.length]);
 
   const handleNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % videos.length);
   }, [videos.length]);
 
-  // 動画の自動再生と停止を管理
-  useEffect(() => {
+  // 動画の再生を管理する関数
+  const playVideo = useCallback(async () => {
     const video = videoRef.current;
     if (!video) return;
 
-    const playVideo = async () => {
-      try {
-        video.currentTime = 0;
-        video.muted = true;
-        await video.play();
-        setIsPlaying(true);
-      } catch (error) {
-        console.error("動画の再生に失敗しました:", error);
+    try {
+      // メタデータが読み込まれるのを待つ
+      if (video.readyState === 0) {
+        await new Promise((resolve) => {
+          video.addEventListener("loadedmetadata", resolve, { once: true });
+        });
       }
-    };
 
+      video.currentTime = 0;
+      video.muted = true;
+
+      // durationが有効な値であることを確認
+      if (video.duration && Number.isFinite(video.duration)) {
+        video.currentTime = video.duration * 0.5;
+      }
+
+      await video.play();
+      setIsPlaying(true);
+    } catch (error) {
+      console.error("動画の再生に失敗しました:", error);
+      setIsPlaying(false);
+    }
+  }, []);
+
+  // currentIndexが変更されたときに動画を再生
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
     playVideo();
 
+    // 3秒後に動画を停止
     const stopTimeout = setTimeout(() => {
-      video.pause();
-      setIsPlaying(false);
-    }, 3000);
+      if (videoRef.current) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    }, 5000);
 
     return () => {
       clearTimeout(stopTimeout);
-      video.pause();
-      setIsPlaying(false);
+      if (videoRef.current) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
     };
-  }, []);
+  }, [currentIndex, playVideo]);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.currentTime = 0;
-    video
-      .play()
-      .catch((error) => console.error("動画の再生に失敗しました:", error));
-  }, []);
-
+  // 自動切り替え
   useEffect(() => {
     const interval = setInterval(() => {
       if (!isPlaying) {
         handleNext();
       }
     }, 5000);
+
     return () => clearInterval(interval);
   }, [isPlaying, handleNext]);
 
