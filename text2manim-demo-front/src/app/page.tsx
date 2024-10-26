@@ -5,7 +5,7 @@ import { HomePage } from "@/components/templates/HomePage";
 
 export default function Home() {
   return (
-    <Box minH="100vh" bg="gray.50">
+    <Box minH="100vh" bg="gray.900">
       <HomePage />
     </Box>
   );
