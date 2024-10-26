@@ -4,12 +4,12 @@ import { Textarea } from "@/components/atoms/Textarea";
 import { Button } from "@/components/atoms/chakra/button";
 
 interface Props {
+  isLoading: boolean;
   onSubmit: (prompt: string) => void;
 }
 
-export function PromptForm({ onSubmit }: Props) {
+export function PromptForm({ isLoading, onSubmit }: Props) {
   const [prompt, setPrompt] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleChangePrompt = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     localStorage.setItem("prompt", e.target.value);
@@ -27,12 +27,7 @@ export function PromptForm({ onSubmit }: Props) {
     e.preventDefault();
     if (!prompt.trim()) return;
 
-    setIsLoading(true);
-    try {
-      await onSubmit(prompt);
-    } finally {
-      setIsLoading(false);
-    }
+    onSubmit(prompt);
   };
 
   return (

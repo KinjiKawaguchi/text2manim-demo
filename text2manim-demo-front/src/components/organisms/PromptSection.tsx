@@ -2,10 +2,11 @@ import { Box, Heading, Text, VStack } from "@chakra-ui/react";
 import { PromptForm } from "@/components/molecules/PromptForm";
 
 interface Props {
+  isLoading: boolean;
   onSubmit: (prompt: string) => void;
 }
 
-export function PromptSection({ onSubmit }: Props) {
+export function PromptSection({ isLoading, onSubmit }: Props) {
   return (
     <Box w="100%" maxW="800px" mx="auto" p={6}>
       <VStack padding={6} align="center" textAlign="center">
@@ -13,7 +14,7 @@ export function PromptSection({ onSubmit }: Props) {
         <Text fontSize="lg" color="gray.600">
           プロンプトを入力して、数学の説明動画を自動生成しましょう
         </Text>
-        <PromptForm onSubmit={onSubmit} />
+        <PromptForm isLoading={isLoading} onSubmit={onSubmit} />
       </VStack>
     </Box>
   );

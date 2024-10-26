@@ -19,23 +19,19 @@ interface Props {
 
 export function EmailModal({ isOpen, onClose, onSubmit }: Props) {
   const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+
+  // TODO: Emailのバリデーション
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
 
-    setIsLoading(true);
-    try {
-      await onSubmit(email);
-    } finally {
-      setIsLoading(false);
-    }
+    onSubmit(email);
   };
 
   return (
     <DialogRoot open={isOpen} onOpenChange={onClose}>
-      <DialogContent as="form" onSubmit={handleSubmit}>
+      <DialogContent>
         <DialogHeader>メールアドレスの登録</DialogHeader>
         <DialogBody>
           <VStack padding={4}>
@@ -58,8 +54,9 @@ export function EmailModal({ isOpen, onClose, onSubmit }: Props) {
           <Button
             type="submit"
             colorScheme="teal"
-            loading={isLoading}
             disabled={!email.trim()}
+            //TODO: ボタンにonClickを直接書くのはあまりよくない
+            onClick={handleSubmit}
           >
             登録して生成
           </Button>
