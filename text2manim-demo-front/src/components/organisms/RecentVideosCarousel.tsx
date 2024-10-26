@@ -4,13 +4,13 @@ import {
   HStack,
   Heading,
   IconButton,
+  Link,
   Text,
   VStack,
-  Link,
 } from "@chakra-ui/react";
+import NextLink from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
-import NextLink from "next/link";
 
 // モックデータを更新してrequest_idを追加
 const MOCK_VIDEOS: (RecentVideo & { request_id: string })[] = [
