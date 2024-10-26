@@ -7,7 +7,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   DrawerActionTrigger,
   DrawerBackdrop,
@@ -33,12 +33,19 @@ export function SettingsDrawer({
   position = { bottom: 4, right: 4 },
 }: SettingsDrawerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [localEmail, setLocalEmail] = useState(
-    () => localStorage.getItem("userEmail") || "",
-  );
-  const [localPrompt, setLocalPrompt] = useState(
-    () => localStorage.getItem("prompt") || "",
-  );
+  const [localEmail, setLocalEmail] = useState("");
+  const [localPrompt, setLocalPrompt] = useState("");
+
+  useEffect(() => {
+    const email = localStorage.getItem("userEmail");
+    const prompt = localStorage.getItem("prompt");
+    if (email) {
+      setLocalEmail(email);
+    }
+    if (prompt) {
+      setLocalPrompt(prompt);
+    }
+  }, []);
 
   const handleEmailUpdate = (newEmail: string) => {
     setLocalEmail(newEmail);
