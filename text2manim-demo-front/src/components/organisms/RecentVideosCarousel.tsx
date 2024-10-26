@@ -8,7 +8,7 @@ import {
   VStack,
   Link,
 } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
 import NextLink from "next/link";
 
@@ -48,9 +48,9 @@ export function RecentVideosCarousel() {
     setCurrentIndex((prev) => (prev - 1 + videos.length) % videos.length);
   };
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % videos.length);
-  };
+  }, [videos.length]);
 
   // 動画の自動再生と停止を管理
   useEffect(() => {
@@ -80,9 +80,8 @@ export function RecentVideosCarousel() {
       video.pause();
       setIsPlaying(false);
     };
-  }, []); // 依存配列を空に
+  }, []);
 
-  // currentIndexの変更を監視して動画を再生
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -91,9 +90,8 @@ export function RecentVideosCarousel() {
     video
       .play()
       .catch((error) => console.error("動画の再生に失敗しました:", error));
-  }, [currentIndex]);
+  }, []);
 
-  // カルーセルの自動切り替え
   useEffect(() => {
     const interval = setInterval(() => {
       if (!isPlaying) {
@@ -101,7 +99,7 @@ export function RecentVideosCarousel() {
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, handleNext]);
 
   return (
     <Box w="100%" position="relative" py={8}>
